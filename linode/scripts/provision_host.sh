@@ -188,7 +188,7 @@ nomad acl bootstrap -address=https://$IP_ADDR:4646 -ca-cert=nomad-agent-ca.pem 2
 curl -s https://download.newrelic.com/infrastructure_agent/gpg/newrelic-infra.gpg | sudo apt-key add - && \
 \
 # Create a configuration file and add your license key \
-echo "license_key: $5" | sudo tee -a /etc/newrelic-infra.yml && \
+echo "license_key: $3\n display_name: linode-server" | sudo tee -a /etc/newrelic-infra.yml && \
 \
 # Create the agent’s apt repository \
 printf "deb [arch=amd64] https://download.newrelic.com/infrastructure_agent/linux/apt buster main" | sudo tee -a /etc/apt/sources.list.d/newrelic-infra.list && \

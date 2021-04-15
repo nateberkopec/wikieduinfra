@@ -141,7 +141,7 @@ WantedBy=multi-user.target" >> /etc/systemd/system/nomadclient.service
 curl -s https://download.newrelic.com/infrastructure_agent/gpg/newrelic-infra.gpg | sudo apt-key add - && \
 \
 # Create a configuration file and add your license key \
-echo "license_key: $5" | sudo tee -a /etc/newrelic-infra.yml && \
+echo "license_key: $5\n display_name: linode-node-$1" | sudo tee -a /etc/newrelic-infra.yml && \
 \
 # Create the agent’s apt repository \
 printf "deb [arch=amd64] https://download.newrelic.com/infrastructure_agent/linux/apt buster main" | sudo tee -a /etc/apt/sources.list.d/newrelic-infra.list && \
