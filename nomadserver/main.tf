@@ -72,7 +72,7 @@ resource "nomad_job" "memcache" {
             )
 }
 
-resource "consul_config_entry" "memcahe" {
+resource "consul_config_entry" "memcache" {
   name = "memcache" # destination service
   kind = "service-intentions"
 
