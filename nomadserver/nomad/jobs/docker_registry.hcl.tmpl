@@ -1,0 +1,63 @@
+job "docker_registry" {
+  datacenters = ["dc1"]
+
+  # Not eligible for scheduling on the special nginx or mariadb node
+  constraint {
+    attribute = "$${meta.reserved_node}"
+    operator  = "!="
+    value     = "true"
+  }
+
+  group "registry" {
+
+    network {
+      mode = "bridge"
+    }
+
+    service {
+      name = "docker-registry"
+      tags = ["docker"]
+      port = "5000"
+
+
+      connect {
+        sidecar_service {}
+      }
+    }
+
+
+    task "docker" {
+      driver = "docker"
+
+      config {
+        image = "registry"
+        ports = ["5000"]
+
+        volumes = [
+          "local:/auth",
+        ]
+      }
+
+      resources {
+        cpu    = 100
+        memory = 256 # 256MB
+      }
+
+      template {
+        data = <<EOF
+docker:${docker_pass_encrypted}
+EOF
+
+        destination   = "local/htpasswd"
+        change_mode   = "signal"
+        change_signal = "SIGHUP"
+      }
+
+      env {
+        REGISTRY_AUTH="htpasswd"
+        REGISTRY_AUTH_HTPASSWD_REALM="Registry Realm"
+        REGISTRY_AUTH_HTPASSWD_PATH="/auth/htpasswd"
+      }
+    }
+  }
+}

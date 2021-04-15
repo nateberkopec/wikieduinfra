@@ -1,0 +1,71 @@
+job "mariadb" {
+  datacenters = ["dc1"]
+
+  constraint {
+    attribute = "$${meta.mariadb_node}"
+    operator  = "=="
+    value     = "true"
+  }
+
+  group "database" {
+    network {
+      mode = "bridge"
+    }
+
+    volume "mariadb" {
+      type      = "host"
+      read_only = false
+      source    = "mariadb"
+    }
+
+    service {
+      name = "mariadb"
+      tags = ["database", "sql"]
+      port = "3306"
+
+      check {
+        type = "script"
+        name = "mariadb"
+        task = "mariadb"
+        command = "mysqladmin"
+        args = ["ping", "--silent"]
+        interval = "60s"
+        timeout  = "5s"
+      }
+
+      connect {
+        sidecar_service {}
+      }
+    }
+
+    task "mariadb" {
+      driver = "docker"
+
+      volume_mount {
+        volume      = "mariadb"
+        destination = "/var/lib/mysql"
+        read_only   = false
+      }
+
+      config {
+        image = "mariadb:10.3"
+        ports = ["3306"]
+        args = [
+          "--innodb-buffer-pool-size", "${ db_buffer_pool_size }",
+        ]
+      }
+
+      resources {
+        cpu    = ${ db_cpu_hertz }
+        memory = ${ db_memory }
+      }
+
+      env {
+        MYSQL_RANDOM_ROOT_PASSWORD = "true"
+        MYSQL_USER = "wiki"
+        MYSQL_PASSWORD = "wikiedu"
+        MYSQL_DATABASE = "dashboard"
+      }
+    }
+  }
+}

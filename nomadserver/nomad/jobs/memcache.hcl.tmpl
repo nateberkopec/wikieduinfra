@@ -1,0 +1,55 @@
+job "memcache" {
+  datacenters = ["dc1"]
+
+  # Not eligible for scheduling on the special nginx or mariadb node
+  constraint {
+    attribute = "$${meta.reserved_node}"
+    operator  = "!="
+    value     = "true"
+  }
+
+  group "cache" {
+
+    network {
+      mode = "bridge"
+    }
+
+    service {
+      name = "memcache"
+      tags = ["database", "cache"]
+      port = "11211"
+
+      check {
+        type = "script"
+        name = "memcached"
+        task = "memcached"
+        command = "nc"
+        args = ["-z", "127.0.0.1", "11211"]
+        interval = "60s"
+        timeout  = "5s"
+      }
+
+      connect {
+        sidecar_service {}
+      }
+    }
+
+    task "memcached" {
+      driver = "docker"
+
+      # It is critical that we use the alpine version so we get nc, to do the healthcheck
+      config {
+        image = "memcached:alpine"
+        ports = ["11211"]
+        args = [
+          "-m", "${ memcache_maxmemory }",
+        ]
+      }
+
+      resources {
+        cpu    = ${ memcache_cpu_hertz }
+        memory = ${ memcache_memory }
+      }
+    }
+  }
+}
