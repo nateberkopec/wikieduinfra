@@ -261,8 +261,6 @@ resource "linode_instance" "redis_node" {
 # particular node stays the same no matter what. On Linode, that's easiest
 # if we just keep the linode instance the same, forever. So, we put NGINX
 # on its own node just so that we never have to worry about moving it.
-# This node will eventually get a host volume via nomad, but it's just
-# a simple one that lives on the instance, not a Linode Block volume.
 resource "linode_instance" "nginx_node" {
   label = "nomad-nginx-node"
   image = "linode/debian10"
@@ -343,8 +341,9 @@ resource "linode_instance" "nginx_node" {
 # Generic node with no particular host volumes. Suitable for web, sidekiq, or
 # "stateless" DB like memcached
 #
+# This node is only required if you need more Sidekiq or Redis processes
 resource "linode_instance" "nomad_node" {
-  count = 1
+  count = 0
 
   label = "nomad-agent-${count.index}"
   image = "linode/debian10"
