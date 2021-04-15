@@ -43,7 +43,6 @@ resource "nomad_job" "redis" {
               {
                 "redis_cpu_hertz" = var.redis_cpu_hertz
                 "redis_memory" = var.redis_memory
-                "redis_maxmemory" = tonumber(var.redis_memory) * 1048576 * 0.8
               }
             )
 }

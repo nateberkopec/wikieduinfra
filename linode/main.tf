@@ -237,7 +237,9 @@ resource "linode_instance" "redis_node" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x provision_agent.sh",
-      "./provision_agent.sh redis ${var.consul_mgmt_token} ${var.consul_gossip_token} ${linode_instance.nomad_server.ip_address} ${var.new_relic_license_key}"
+      "./provision_agent.sh redis ${var.consul_mgmt_token} ${var.consul_gossip_token} ${linode_instance.nomad_server.ip_address} ${var.new_relic_license_key}",
+      "chmod +x provision_agent_redis.sh",
+      "./provision_agent_redis.sh redis ${var.consul_mgmt_token}"
     ]
 
     connection {
@@ -250,33 +252,6 @@ resource "linode_instance" "redis_node" {
 
   provisioner "local-exec" {
     command = "ssh-keyscan ${self.ip_address} >> ~/.ssh/known_hosts"
-  }
-}
-
-resource "linode_volume" "redis" {
-  label = "redis-volume"
-  region = linode_instance.redis_node.region
-  linode_id = linode_instance.redis_node.id
-  size = 10 # GB
-
-  provisioner "remote-exec" {
-    inline = [
-      "mkfs.ext4 ${self.filesystem_path}",
-      "mkdir /mnt/BlockStorage1",
-      "mount ${self.filesystem_path} /mnt/BlockStorage1",
-      "echo \" ${self.filesystem_path} /mnt/BlockStorage1 ext4 defaults 0 2\" >> /etc/fstab",
-      "mkdir /mnt/BlockStorage1/redis",
-      "mkdir /mnt/BlockStorage1/nginx",
-      "chmod +x provision_agent_redis.sh",
-      "./provision_agent_redis.sh redis ${var.consul_mgmt_token}"
-    ]
-
-    connection {
-      type     = "ssh"
-      user     = "root"
-      private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = linode_instance.redis_node.ip_address
-    }
   }
 }
 

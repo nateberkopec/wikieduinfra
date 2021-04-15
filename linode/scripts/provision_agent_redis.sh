@@ -8,7 +8,7 @@ sudo echo "client {
   enabled = true
 
   host_volume \"redis\" {
-    path      = \"/mnt/BlockStorage1/redis\"
+    path      = \"/root/redis-data\"
     read_only = false
   }
 

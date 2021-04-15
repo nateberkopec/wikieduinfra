@@ -51,10 +51,6 @@ job "redis" {
       config {
         image = "redis:6.2.1"
         ports = ["6379"]
-
-        args = [
-          "--maxmemory", "${ redis_maxmemory }",
-        ]
       }
 
       resources {

@@ -37,7 +37,7 @@ output "redis_cpu_hertz" {
 }
 
 output "redis_memory" {
-  value = "1000"
+  value = "256"
 }
 
 output "memcache_cpu_hertz" {
