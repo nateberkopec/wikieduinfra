@@ -155,7 +155,7 @@ resource "linode_volume" "mariadb" {
   label = "mariadb-volume"
   region = linode_instance.mariadb_node.region
   linode_id = linode_instance.mariadb_node.id
-  size = 10 # GB
+  size = 20 # GB
 
   provisioner "remote-exec" {
     inline = [
