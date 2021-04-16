@@ -26,6 +26,8 @@ resource "linode_instance" "nomad_server" {
   type = "g6-standard-1"
   authorized_keys = [chomp(data.local_file.ssh_pubkey.content)]
   root_pass = var.root_pass
+  backups_enabled = true
+  watchdog_enabled= true
 
   provisioner "file" {
     source      = "scripts/provision_host.sh"
@@ -83,6 +85,8 @@ resource "linode_instance" "mariadb_node" {
   type = "g6-standard-4"
   authorized_keys = [chomp(data.local_file.ssh_pubkey.content)]
   root_pass = var.root_pass
+  backups_enabled = true
+  watchdog_enabled= true
 
   provisioner "file" {
     source      = "scripts/provision_agent.sh"
@@ -161,6 +165,8 @@ resource "linode_instance" "redis_node" {
   type = "g6-standard-4"
   authorized_keys = [chomp(data.local_file.ssh_pubkey.content)]
   root_pass = var.root_pass
+  backups_enabled = true
+  watchdog_enabled= true
 
   provisioner "file" {
     source      = "${abspath(path.root)}/../certs/consul-agent-certs"
@@ -244,6 +250,8 @@ resource "linode_instance" "nginx_node" {
   type = "g6-standard-1"
   authorized_keys = [chomp(data.local_file.ssh_pubkey.content)]
   root_pass = var.root_pass
+  backups_enabled = true
+  watchdog_enabled= true
 
   provisioner "file" {
     source      = "${abspath(path.root)}/../certs/consul-agent-certs"
@@ -317,9 +325,9 @@ resource "linode_instance" "nginx_node" {
 # Generic node with no particular host volumes. Suitable for web, sidekiq, or
 # "stateless" DB like memcached
 #
-# This node is only required if you need more Sidekiq or Redis processes
+# Scale this node up with count if you need more Sidekiq or Redis processes
 resource "linode_instance" "nomad_node" {
-  count = 0
+  count = 1
 
   label = "nomad-agent-${count.index}"
   image = "linode/debian10"
@@ -327,6 +335,8 @@ resource "linode_instance" "nomad_node" {
   type = "g6-standard-4"
   authorized_keys = [chomp(data.local_file.ssh_pubkey.content)]
   root_pass = var.root_pass
+  backups_enabled = true
+  watchdog_enabled= true
 
   provisioner "file" {
     source      = "${abspath(path.root)}/../certs/consul-agent-certs"

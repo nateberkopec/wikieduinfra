@@ -52,12 +52,50 @@ resource "consul_config_entry" "redis" {
   kind = "service-intentions"
 
   config_json = jsonencode({
-    Sources = [{
-      Action     = "allow"
-      Name       = "rails" # originating service
-      Precedence = 9
-      Type       = "consul"
-    }]
+    Sources = [
+      {
+        Action     = "allow"
+        Name       = "rails" # originating service
+        Precedence = 9
+        Type       = "consul"
+      },
+      {
+        Action     = "allow"
+        Name       = "sidekiq-constant" # originating service
+        Precedence = 9
+        Type       = "consul"
+      },
+      {
+        Action     = "allow"
+        Name       = "sidekiq-daily" # originating service
+        Precedence = 9
+        Type       = "consul"
+      },
+      {
+        Action     = "allow"
+        Name       = "sidekiq-default" # originating service
+        Precedence = 9
+        Type       = "consul"
+      },
+      {
+        Action     = "allow"
+        Name       = "sidekiq-long" # originating service
+        Precedence = 9
+        Type       = "consul"
+      },
+      {
+        Action     = "allow"
+        Name       = "sidekiq-medium" # originating service
+        Precedence = 9
+        Type       = "consul"
+      },
+      {
+        Action     = "allow"
+        Name       = "sidekiq-short" # originating service
+        Precedence = 9
+        Type       = "consul"
+      }
+    ]
   })
 }
 
@@ -77,12 +115,50 @@ resource "consul_config_entry" "memcache" {
   kind = "service-intentions"
 
   config_json = jsonencode({
-    Sources = [{
-      Action     = "allow"
-      Name       = "rails" # originating service
-      Precedence = 9
-      Type       = "consul"
-    }]
+    Sources = [
+      {
+        Action     = "allow"
+        Name       = "rails" # originating service
+        Precedence = 9
+        Type       = "consul"
+      },
+      {
+        Action     = "allow"
+        Name       = "sidekiq-constant" # originating service
+        Precedence = 9
+        Type       = "consul"
+      },
+      {
+        Action     = "allow"
+        Name       = "sidekiq-daily" # originating service
+        Precedence = 9
+        Type       = "consul"
+      },
+      {
+        Action     = "allow"
+        Name       = "sidekiq-default" # originating service
+        Precedence = 9
+        Type       = "consul"
+      },
+      {
+        Action     = "allow"
+        Name       = "sidekiq-long" # originating service
+        Precedence = 9
+        Type       = "consul"
+      },
+      {
+        Action     = "allow"
+        Name       = "sidekiq-medium" # originating service
+        Precedence = 9
+        Type       = "consul"
+      },
+      {
+        Action     = "allow"
+        Name       = "sidekiq-short" # originating service
+        Precedence = 9
+        Type       = "consul"
+      }
+    ]
   })
 }
 
@@ -102,12 +178,50 @@ resource "consul_config_entry" "mariadb" {
   kind = "service-intentions"
 
   config_json = jsonencode({
-    Sources = [{
-      Action     = "allow"
-      Name       = "rails" # originating service
-      Precedence = 9
-      Type       = "consul"
-    }]
+    Sources = [
+      {
+        Action     = "allow"
+        Name       = "rails" # originating service
+        Precedence = 9
+        Type       = "consul"
+      },
+      {
+        Action     = "allow"
+        Name       = "sidekiq-constant" # originating service
+        Precedence = 9
+        Type       = "consul"
+      },
+      {
+        Action     = "allow"
+        Name       = "sidekiq-daily" # originating service
+        Precedence = 9
+        Type       = "consul"
+      },
+      {
+        Action     = "allow"
+        Name       = "sidekiq-default" # originating service
+        Precedence = 9
+        Type       = "consul"
+      },
+      {
+        Action     = "allow"
+        Name       = "sidekiq-long" # originating service
+        Precedence = 9
+        Type       = "consul"
+      },
+      {
+        Action     = "allow"
+        Name       = "sidekiq-medium" # originating service
+        Precedence = 9
+        Type       = "consul"
+      },
+      {
+        Action     = "allow"
+        Name       = "sidekiq-short" # originating service
+        Precedence = 9
+        Type       = "consul"
+      }
+    ]
   })
 }
 
