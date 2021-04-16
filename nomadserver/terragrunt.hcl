@@ -36,3 +36,13 @@ inputs = {
   docker_domain = dependency.linode.outputs.docker_domain
   rails_domain = dependency.linode.outputs.rails_domain
 }
+
+terraform {
+  extra_arguments "common_vars" {
+    commands = ["plan", "apply", "destroy"]
+
+    arguments = [
+      "-var-file=./secrets.tfvars"
+    ]
+  }
+}

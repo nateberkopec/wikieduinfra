@@ -43,9 +43,13 @@ job "docker_registry" {
         memory = 256 # 256MB
       }
 
+      env {
+        HTPASSWD_ENCRYPTED = "${ docker_pass_encrypted }"
+      }
+
       template {
         data = <<EOF
-docker:${docker_pass_encrypted}
+docker:{{ env "HTPASSWD_ENCRYPTED" }}
 EOF
 
         destination   = "local/htpasswd"
