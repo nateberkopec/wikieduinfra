@@ -83,6 +83,8 @@ server {
   location /.well-known/acme-challenge/ {
     root /etc/letsencrypt/var/{{ or (env "WIKIED_DOCKER_DN") "127.0.0.1" }}/certbot;
   }
+
+  return 301 https://$host$request_uri;
 }
 
 server {
@@ -92,6 +94,8 @@ server {
   location /.well-known/acme-challenge/ {
     root /etc/letsencrypt/var/{{ or (env "WIKIED_RAILS_DN") "127.0.0.1" }}/certbot;
   }
+
+  return 301 https://$host$request_uri;
 }
 
 

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
 sudo mkdir --parents /etc/nomad.d
+sudo mkdir --parents /data/redis-data
+sudo mkdir --parents /data/waypoint-data
 sudo chmod 700 /etc/nomad.d
 
 sudo touch /etc/nomad.d/client.hcl
@@ -8,7 +10,12 @@ sudo echo "client {
   enabled = true
 
   host_volume \"redis\" {
-    path      = \"/root/redis-data\"
+    path      = \"/data/redis-data\"
+    read_only = false
+  }
+
+  host_volume \"waypoint\" {
+    path      = \"/data/waypoint-data\"
     read_only = false
   }
 

@@ -6,3 +6,4 @@ terraform.tfstate.backup
 secrets.tfvars
 .DS_Store
 crash.log
+nomad.sh

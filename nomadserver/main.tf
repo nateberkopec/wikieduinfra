@@ -272,6 +272,21 @@ resource "consul_config_entry" "rails" {
   })
 }
 
+resource "null_resource" "nomad_shell" {
+  provisioner "local-exec" {
+    command = <<EOF
+    echo "
+      export NOMAD_ADDR="https://${var.nomad_server_ip_address}:4646"
+      export NOMAD_TOKEN=${var.nomad_mgmt_token}
+      export NOMAD_CA_PATH="${abspath(path.root)}/../certs/nomad-agent-certs/nomad-agent-ca.pem"
+      export NOMAD_CLIENT_CERT="${abspath(path.root)}/../certs/nomad-agent-certs/global-client-nomad-0.pem"
+      export NOMAD_CLIENT_KEY="${abspath(path.root)}/../certs/nomad-agent-certs/global-client-nomad-0-key.pem"
+      export NOMAD_SKIP_VERIFY="true"
+    " >> nomad.sh
+    EOF
+  }
+}
+
 resource "null_resource" "waypoint" {
   provisioner "local-exec" {
     command = "waypoint install -platform=nomad -nomad-dc=dc1 -accept-tos"

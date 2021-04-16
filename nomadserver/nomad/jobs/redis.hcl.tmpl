@@ -1,13 +1,6 @@
 job "redis" {
   datacenters = ["dc1"]
 
-  # Not eligible for scheduling on the special nginx node
-  constraint {
-    attribute = "$${meta.redis_node}"
-    operator  = "=="
-    value     = "true"
-  }
-
   group "database" {
     network {
       mode = "bridge"
