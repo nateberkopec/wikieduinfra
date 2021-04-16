@@ -6,10 +6,10 @@ job "redis" {
       mode = "bridge"
     }
 
-    volume "redis" {
-      type      = "host"
-      read_only = false
-      source    = "redis"
+    ephemeral_disk {
+      migrate = true
+      size    = ${ redis_memory }
+      sticky  = true
     }
 
     service {
@@ -34,12 +34,6 @@ job "redis" {
 
     task "redis" {
       driver = "docker"
-
-      volume_mount {
-        volume      = "redis"
-        destination = "/data"
-        read_only   = false
-      }
 
       config {
         image = "redis:6.2.1"

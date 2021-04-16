@@ -14,6 +14,12 @@ job "docker_registry" {
       mode = "bridge"
     }
 
+    ephemeral_disk {
+      migrate = true
+      size    = 2000
+      sticky  = true
+    }
+
     service {
       name = "docker-registry"
       tags = ["docker"]

@@ -157,86 +157,6 @@ resource "linode_instance" "mariadb_node" {
   }
 }
 
-# Node which contains the host volume for Redis.
-resource "linode_instance" "redis_node" {
-  label = "nomad-redis-node"
-  image = "linode/debian10"
-  region = "us-west"
-  type = "g6-standard-4"
-  authorized_keys = [chomp(data.local_file.ssh_pubkey.content)]
-  root_pass = var.root_pass
-  backups_enabled = true
-  watchdog_enabled= true
-
-  provisioner "file" {
-    source      = "${abspath(path.root)}/../certs/consul-agent-certs"
-    destination = "/root"
-
-    connection {
-      type     = "ssh"
-      user     = "root"
-      private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
-    }
-  }
-
-  provisioner "file" {
-    source      = "${abspath(path.root)}/../certs/nomad-agent-certs"
-    destination = "/root"
-
-    connection {
-      type     = "ssh"
-      user     = "root"
-      private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
-    }
-  }
-
-  provisioner "file" {
-    source      = "scripts/provision_agent.sh"
-    destination = "~/provision_agent.sh"
-
-    connection {
-      type     = "ssh"
-      user     = "root"
-      private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
-    }
-  }
-
-  provisioner "file" {
-    source      = "scripts/provision_agent_redis.sh"
-    destination = "~/provision_agent_redis.sh"
-
-    connection {
-      type     = "ssh"
-      user     = "root"
-      private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
-    }
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "chmod +x provision_agent.sh",
-      "./provision_agent.sh redis ${var.consul_mgmt_token} ${var.consul_gossip_token} ${linode_instance.nomad_server.ip_address} ${var.new_relic_license_key}",
-      "chmod +x provision_agent_redis.sh",
-      "./provision_agent_redis.sh redis ${var.consul_mgmt_token}"
-    ]
-
-    connection {
-      type     = "ssh"
-      user     = "root"
-      private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
-    }
-  }
-
-  provisioner "local-exec" {
-    command = "ssh-keyscan ${self.ip_address} >> ~/.ssh/known_hosts"
-  }
-}
-
 # Special ingress node. Don't scale this one, we want it to just run NGINX.
 # Why? It's easier this way to manage IP addresses. We want this to be the one
 # public ingress to the cluster, and it's easiest if the IP address for this
@@ -323,11 +243,11 @@ resource "linode_instance" "nginx_node" {
 }
 
 # Generic node with no particular host volumes. Suitable for web, sidekiq, or
-# "stateless" DB like memcached
+# "stateless" DB like memcached/redis
 #
-# Scale this node up with count if you need more Sidekiq or Redis processes
+# Scale this node up with count if you need more Sidekiq or Rails processes
 resource "linode_instance" "nomad_node" {
-  count = 1
+  count = 3
 
   label = "nomad-agent-${count.index}"
   image = "linode/debian10"

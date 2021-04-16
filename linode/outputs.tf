@@ -33,7 +33,7 @@ output "db_memory" {
 }
 
 output "redis_cpu_hertz" {
-  value = "1500"
+  value = "500"
 }
 
 output "redis_memory" {
