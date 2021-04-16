@@ -29,7 +29,7 @@ job "nginx" {
               local_bind_port  = 3000
             }
             upstreams {
-              destination_name = "rails"
+              destination_name = "puma"
               local_bind_port  = 3001
             }
           }
@@ -73,7 +73,7 @@ upstream docker {
 }
 
 upstream rails {
-  server {{ or (env "NOMAD_UPSTREAM_ADDR_rails") "127.0.0.1" }};
+  server {{ or (env "NOMAD_UPSTREAM_ADDR_puma") "127.0.0.1" }};
 }
 
 server {

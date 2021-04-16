@@ -55,7 +55,7 @@ resource "consul_config_entry" "redis" {
     Sources = [
       {
         Action     = "allow"
-        Name       = "rails" # originating service
+        Name       = "puma" # originating service
         Precedence = 9
         Type       = "consul"
       },
@@ -118,7 +118,7 @@ resource "consul_config_entry" "memcache" {
     Sources = [
       {
         Action     = "allow"
-        Name       = "rails" # originating service
+        Name       = "puma" # originating service
         Precedence = 9
         Type       = "consul"
       },
@@ -181,7 +181,7 @@ resource "consul_config_entry" "mariadb" {
     Sources = [
       {
         Action     = "allow"
-        Name       = "rails" # originating service
+        Name       = "puma" # originating service
         Precedence = 9
         Type       = "consul"
       },
@@ -258,8 +258,8 @@ resource "consul_config_entry" "nginx" {
   })
 }
 
-resource "consul_config_entry" "rails" {
-  name = "rails" # destination service
+resource "consul_config_entry" "puma" {
+  name = "puma" # destination service
   kind = "service-intentions"
 
   config_json = jsonencode({
