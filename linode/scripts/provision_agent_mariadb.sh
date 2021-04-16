@@ -2,13 +2,13 @@
 
 sudo mkdir --parents /etc/nomad.d
 sudo chmod 700 /etc/nomad.d
-
+sudo mkdir -p /data/mariadb
 sudo touch /etc/nomad.d/client.hcl
 sudo echo "client {
   enabled = true
 
   host_volume \"mariadb\" {
-    path      = \"/mnt/BlockStorage1/mysql\"
+    path      = \"/data/mariadb/\"
     read_only = false
   }
 

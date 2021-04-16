@@ -24,3 +24,16 @@ This configuration:
 2. Terraform (0.15)
 3. Terragrunt (0.28.21)
 4. `ssh-keyscan` and `scp`
+
+### Using Waypoint Exec
+
+You may connect to any container running the rails app with `waypoint exec`.
+
+However, once inside the container, you must prefix all commands with `/cnb/lifecycle/launcher` in order to set `$PATH` correctly and get all of your actually-installed Rubies/gems/etc, rather than using the system versions.
+
+### Scaling Strategy
+
+**Rails and Sidekiq workloads**: If you're running out Sidekiq capacity (queues getting backed up) or Rails capacity (HTTP queue latency reported is unacceptable, say 150milliseconds or more), you should add additional "no volume" nodes by [increasing the task group `count`](https://www.nomadproject.io/docs/job-specification/group) to provide more resources, then change the `rails` jobspec file in the WikiEdu repo or use the [nomad job scale](https://www.nomadproject.io/docs/commands/job/scale) command.
+* **More NGINX capacity** If Nginx is running out of CPU, resize the node (in `linode/main.tf`). This will take about 5 minutes and will cause hard downtime. You will then need to increase the cpu/memory allocation in the Nomad jobfile for Nginx.
+* **More Redis or Memcache capacity**. Update the appropriate variables that control CPU/memory allocation. If that means that you have no available space in the cluster topology, provision additional nodes in `linode/main.tf`.
+* **More MariaDB capacity**. Resize the node. This will cause hard downtime of 5 minutes or more. You will need to update the cpu/memory allocation in the mariadb job spec. It is intended that the mariadb job takes all of the resources on its node.
