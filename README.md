@@ -20,10 +20,10 @@ This configuration:
 
 ## Binaries required
 
-1. Waypoint (0.3)
-2. Terraform (0.15)
-3. Terragrunt (0.28.21)
-4. `ssh-keyscan` and `scp`
+1. Waypoint (0.3) - https://www.waypointproject.io/
+2. Terraform (0.15) - https://www.terraform.io/
+3. Terragrunt (0.28.24) - https://terragrunt.gruntwork.io/
+4. `ssh-keyscan` and `scp` and `htpasswd` (provided by apache2-utils on Debian)
 
 ### Using Waypoint Exec
 
