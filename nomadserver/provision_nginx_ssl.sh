@@ -1,9 +1,9 @@
 # Run this on the nginx node, not inside the docker container for nginx
 # Change below line to your desired domains
-domains=("a5641d.wikiedu.org" "eeeac4.wikiedu.org")
+domains=("dashboard-test.wikiedu.org" "docker.wikiedu.org")
 rsa_key_size=4096
 data_path="/etc/letsencrypt"
-email="nate.berkopec@speedshop.co" # Adding a valid address is strongly recommended
+email="sage@wikiedu.org" # Adding a valid address is strongly recommended
 
 # To get or renew a LE cert:
 
