@@ -11,19 +11,22 @@ This configuration:
 ## Steps to Spin Up a New Datacenter
 
 1. Create a `secrets.tfvars` file in the `linode` and `nomadservers` directories. See `secrets.tfvars.example` and `variables.tf` for more information.
-1. Ensure all binaries (below) are on your `PATH`
-1. `terragrunt run-all init`
-1. `terragrunt run-all apply`
-1. Point subdomains to the address of your new nginx node.
-1. Run the provided ssl provision script (in `nomadserver` ) on the nginx node.
-1. `waypoint init && waypoint up` from the WikiEd project directory.
+2. Ensure all binaries (below) are on your `PATH`
+3. `terragrunt run-all init`
+4. `terragrunt run-all apply`
+5. Configure DNS
+   1. Create an A record to point the rails domain to the nginx node's IP address
+   2. Create an A record to point the docker domain to the nginx node's IP address as well
+6. Run the provided ssl provision script (in `nomadserver` ) on the nginx node.
+7. `waypoint init && waypoint up` from the WikiEd project directory.
 
 ## Binaries required
 
 1. Waypoint (0.3) - https://www.waypointproject.io/
 2. Terraform (0.15) - https://www.terraform.io/
 3. Terragrunt (0.28.24) - https://terragrunt.gruntwork.io/
-4. `ssh-keyscan` and `scp` and `htpasswd` (provided by apache2-utils on Debian)
+4. Consul - https://www.consul.io/ 
+5. `ssh-keyscan` and `scp` and `htpasswd` (provided by apache2-utils on Debian)
 
 ### Using Waypoint Exec
 

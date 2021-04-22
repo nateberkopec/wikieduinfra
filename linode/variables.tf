@@ -4,7 +4,7 @@ variable "consul_mgmt_token" {
     Token used to secure Consul - this token grants global permissions to bearer.
     Use `openssl rand -hex 24` to generate a sufficiently random value.
   EOT
-  sensitive   = true
+  # sensitive   = true
 }
 
 variable "consul_gossip_token" {
@@ -13,19 +13,19 @@ variable "consul_gossip_token" {
     Token used to secure Consul gossip protocol.
     Use `openssl rand -hex 24` to generate.
   EOT
-  sensitive = true
+  # sensitive = true
 }
 
 variable "new_relic_license_key" {
   type    = string
   description = "Your New Relic License Key. Used to stand up the Infra Agent."
-  sensitive = true
+  # sensitive = true
 }
 
 variable "linode_token" {
   type    = string
   description = "Your Linode Access Token."
-  sensitive = true
+  # sensitive = true
 }
 
 variable "root_pass" {
@@ -34,7 +34,7 @@ variable "root_pass" {
     All root passwords will be set to this value.
     Use `openssl rand -hex 16` to generate a sufficiently random value.
   EOT
-  sensitive = true
+  # sensitive = true
 }
 
 variable "docker_domain" {
