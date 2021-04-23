@@ -13,7 +13,7 @@ for domain in "${domains[@]}"; do
   mkdir -p $domainpath
 
   docker run -it -v "$data_path:$data_path" --rm --entrypoint "" certbot/certbot sh -c "certbot certonly --webroot -w $data_path/var/$domain/certbot -d $domain --email $email --rsa-key-size $rsa_key_size --non-interactive --agree-tos --force-renewal"
-  if [ -f $data_path/main/$domain ]; then
+  if [ -f $data_path/live/$domain/fullchain.pem ]; then
     ln -sfn $data_path/live/$domain $data_path/main/$domain
   fi
 done
