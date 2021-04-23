@@ -14,7 +14,7 @@ This configuration:
 2. Ensure all binaries (below) are on your `PATH`
 3. `terragrunt run-all init`
 4. `terragrunt run-all apply`
-   1. At this point, you can reach the Nomad UI by via `https://{nomad_server_ip_address}:4646`. The required ACL token Secret ID is on the Nomad server in `/root/bootstrap.token`. Log in via SSH to get it.
+   1. At this point, you can reach the Nomad UI by via `https://{nomad_server_ip_address}:4646`. The required ACL token Secret ID is the `nomad_mgmt_token`, also available on the Nomad server in `/root/bootstrap.token`.
 5. Configure DNS
    1. Create an A record to point the rails domain to the nginx node's IP address
    2. Create an A record to point the docker domain to the nginx node's IP address as well
