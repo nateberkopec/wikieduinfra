@@ -54,3 +54,12 @@ variable "letsencrypt_email" {
   description = "Email address for LE certs"
   default = "sage@wikiedu.org"
 }
+
+variable "ssh_pubkey" {
+  type = string
+  description = "Local path to the SSH public key for accessing the cluster"
+}
+variable "ssh_privkey" {
+  type = string
+  description = "Local path to the SSH private key for accessing the cluster"
+}

@@ -14,6 +14,7 @@ This configuration:
 2. Ensure all binaries (below) are on your `PATH`
 3. `terragrunt run-all init`
 4. `terragrunt run-all apply`
+   1. At this point, you can reach the Nomad UI by via `https://{nomad_server_ip_address}:4646`. The required ACL token Secret ID is on the Nomad server in `/root/bootstrap.token`. Log in via SSH to get it.
 5. Configure DNS
    1. Create an A record to point the rails domain to the nginx node's IP address
    2. Create an A record to point the docker domain to the nginx node's IP address as well
@@ -27,6 +28,10 @@ This configuration:
 3. Terragrunt (0.28.24) - https://terragrunt.gruntwork.io/
 4. Consul - https://www.consul.io/ 
 5. `ssh-keyscan` and `scp` and `htpasswd` (provided by apache2-utils on Debian)
+
+## Interacting with Terraform resources
+When Terraform spins up virtual machines, it installs your SSH keys. You can SSH directly into root@IP_ADDRESS for any of the virtual machines. The most important ones — nginx and Nomad — are shown in the outputs of `terragrunt run-all apply`. (This command is idempotent, so you can run it with no changes in the project to see the current IPs.)
+
 
 ### Using Waypoint Exec
 

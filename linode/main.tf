@@ -407,6 +407,16 @@ resource "linode_instance" "nomad_node" {
   }
 }
 
+# Point this to wherever the SSH key you want to use to manage your
+# infra lives
+data "local_file" "ssh_pubkey" {
+  filename = var.ssh_pubkey
+}
+
+data "local_file" "ssh_privkey" {
+  filename = var.ssh_privkey
+}
+
 # Note this means that the server must have jq installed during the provision step
 data "external" "nomad_bootstrap_acl" {
   program = ["sh", "scripts/get_bootstrap.sh", data.local_file.ssh_privkey.filename]
