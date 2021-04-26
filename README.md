@@ -27,7 +27,8 @@ This configuration:
 2. Terraform (0.15) - https://www.terraform.io/
 3. Terragrunt (0.28.24) - https://terragrunt.gruntwork.io/
 4. Consul - https://www.consul.io/ 
-5. `ssh-keyscan` and `scp` and `htpasswd` (provided by apache2-utils on Debian)
+5. Nomad - https://www.nomadproject.io/
+6. `ssh-keyscan` and `scp` and `htpasswd` (provided by apache2-utils on Debian)
 
 ## Interacting with Terraform resources
 When Terraform spins up virtual machines, it installs your SSH keys. You can SSH directly into root@IP_ADDRESS for any of the virtual machines. The most important ones — nginx and Nomad — are shown in the outputs of `terragrunt run-all apply`. (This command is idempotent, so you can run it with no changes in the project to see the current IPs.)

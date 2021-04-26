@@ -1,9 +1,10 @@
 variable "docker_pass_encrypted" {
   type = string
   description = <<EOF
-A password for HTTP basic auth on Docker Registry. Use:
+A hashed password for HTTP basic auth on Docker Registry. Use:
 htpasswd -Bbn docker testpass
-where testpass is the password you want.
+where testpass is the password you want. Exclude the `docker:` prefix.
+Retain the original password to use via `docker login <DOCKER URL>`
 EOF
   default = ""
 }
