@@ -10,6 +10,8 @@ This configuration:
 
 ## Steps to Spin Up a New Datacenter
 
+### Create and provision the servers
+
 1. Create a `secrets.tfvars` file in the `linode` and `nomadservers` directories. See `secrets.tfvars.example` and `variables.tf` for more information.
 2. Ensure all binaries (below) are on your `PATH`
 3. `terragrunt run-all init`
@@ -19,7 +21,36 @@ This configuration:
    1. Create an A record to point the rails domain to the nginx node's IP address
    2. Create an A record to point the docker domain to the nginx node's IP address as well
 6. Run the provided ssl provision script (in `nomadserver` ) on the nginx node.
-7. `waypoint init && waypoint up` from the WikiEd project directory.
+
+### Prepare the Rails app
+
+7. Clone a fresh copy of the WikiEduDashboard app in a new directory
+8. Create `application.yml` and `database.yml` to match what will run in the cloud. (These will be included in the Docker image that gets deployed.)
+9. Install the gems and node modules, then build the production assets:
+   1.  `bundle install`
+   2.  `yarn install`
+   3.  `yarn build`
+10. Log in to docker
+   4. `docker login <DOCKER_DOMAIN>`. User: 'docker', password: same the input to `htpasswd` when generating {docker_pass_encrypted}
+11. Add nomad variables to your ENV
+   5. `source nomadserver/nomad.sh` or similar, in the same shell used for the WikiEduDashboard waypoint commands below.
+12. Run `waypoint init` to generate the job templates.
+13. Build and deploy
+    1.  `waypoint up` generates a Docker image, pushes it to the registry, and deploys it to all the web and sidekiq jobs
+    2.  `waypoint build` just generates a Docker image and pushes it to the registry at the docker domain
+    3.  `waypoint deploy` just deploys the latest image as a set of jobs for web and sidekiq
+
+### Transfer data
+
+14. Copy the database (unless starting from scratch)
+    1.  Use SCP to transfer a gzipped copy of the database to the mariadb node (after adding an SSH pubkey from the source machine to the authorized_keys file on the node.)
+    2.  Copy the database file into the mariadb container using `docker copy`
+    3.  Log in to the docker container (eg `docker exec -it 0323b53c064e /bin/bash`
+    4.  Unzip and import the database (eg `gunzip daily_dashboard_2021-04-26_01h16m_Monday.sql.gz`; `mysql -u wiki -p dashboard < daily_dashboard_2021-04-26_01h16m_Monday.sql`)
+15. Copy the `/public/system` directory to the railsweb node.
+    1.  This lives at `/var/www/dashboard/shared/public/system` for the Capistrano-deployed production server.
+    2.  Get it to the node: `scp -r system/ 45.33.51.69:/root/database_transfer/`
+    3.  Get it into docker: `docker cp system 13a78c00206f:/workspace/public/`
 
 ## Binaries required
 
@@ -36,10 +67,12 @@ When Terraform spins up virtual machines, it installs your SSH keys. You can SSH
 
 ### Using Waypoint Exec
 
-You may connect to any container running the rails app with `waypoint exec`.
+You may connect to any container running the rails app with `waypoint exec` (eg, `waypoint exec bash`).
 
 However, once inside the container, you must prefix all commands with `/cnb/lifecycle/launcher` in order to set `$PATH` correctly and get all of your actually-installed Rubies/gems/etc, rather than using the system versions.
 
+Useful commands:
+* Get a production Rails console: `/cnb/lifecycle/launcher rails console`
 ### Scaling Strategy
 
 **Rails and Sidekiq workloads**: If you're running out Sidekiq capacity (queues getting backed up) or Rails capacity (HTTP queue latency reported is unacceptable, say 150milliseconds or more), you should add additional "no volume" nodes by [increasing the task group `count`](https://www.nomadproject.io/docs/job-specification/group) to provide more resources, then change the `rails` jobspec file in the WikiEdu repo or use the [nomad job scale](https://www.nomadproject.io/docs/commands/job/scale) command.

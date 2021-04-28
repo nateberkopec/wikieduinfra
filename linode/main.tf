@@ -69,6 +69,11 @@ resource "linode_instance" "nomad_server" {
   }
 
   provisioner "local-exec" {
+    when    = destroy
+    command = "rm ${abspath(path.root)}/../nomadserver/nomad.sh"
+  }
+
+  provisioner "local-exec" {
     command = "scp -i ${data.local_file.ssh_privkey.filename} -r root@${self.ip_address}:/root/consul-agent-certs ${abspath(path.root)}/../certs"
   }
 
