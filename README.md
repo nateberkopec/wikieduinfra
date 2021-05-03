@@ -65,6 +65,21 @@ This configuration:
 ## Interacting with Terraform resources
 When Terraform spins up virtual machines, it installs your SSH keys. You can SSH directly into root@IP_ADDRESS for any of the virtual machines. The most important ones — nginx and Nomad — are shown in the outputs of `terragrunt run-all apply`. (This command is idempotent, so you can run it with no changes in the project to see the current IPs.)
 
+### Managing resources from multiple devices
+To set up a new device to manage an existing (production) cluster of resources:
+
+1. Clone the repository
+2. Add the same SSH keys used to access the cluster (as specified in `linode/secrets.tfvars`)
+   1. `chmod 600` the private key after copying it, or it may not work.
+   2. With just the ssh key, you should be able to `ssh root@<rails domain>`, etc.
+3. Copy all required state into the project directory
+   1. Both `secrets.tfvars` files
+   2. All 5 `terraform.tfstate` files
+   3. The entire `certs` directory
+   4. `nomadserver/nomad.sh` (modify the paths to the certs if necessary)
+4. Run `terragrunt run-all apply`. If this works, everything is in order.
+
+Note that running `terragrunt run-all apply` will only apply changes it detects based on files in the project directory, so if changes have been deployed that don't match the local project (for example, changes on another computer that weren't checked into git or are from a newer revision missing from the local repo) then no running services will be changed. To reset a service (eg, the nginx gateway), you can make a nonfunctional change (ie, add a comment) to the corresponding `.hcl.tmpl` file.
 
 ### Using Waypoint Exec
 
