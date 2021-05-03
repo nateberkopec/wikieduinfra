@@ -50,7 +50,8 @@ This configuration:
 15. Copy the `/public/system` directory to the railsweb node.
     1.  This lives at `/var/www/dashboard/shared/public/system` for the Capistrano-deployed production server.
     2.  Get it to the node: `scp -r system/ 45.33.51.69:/root/database_transfer/`
-    3.  Get it into docker: `docker cp system 13a78c00206f:/workspace/public/`
+    3.  Change the permissions so that the docker user can write to it: `chmod -R 777 system`
+    4.  Get it into docker: `docker cp system 13a78c00206f:/workspace/public/`
 
 ## Binaries required
 
