@@ -95,3 +95,9 @@ Useful commands:
 * **More NGINX capacity** If Nginx is running out of CPU, resize the node (in `linode/main.tf`). This will take about 5 minutes and will cause hard downtime. You will then need to increase the cpu/memory allocation in the Nomad jobfile for Nginx.
 * **More Redis or Memcache capacity**. Update the appropriate variables that control CPU/memory allocation. If that means that you have no available space in the cluster topology, provision additional nodes in `linode/main.tf`.
 * **More MariaDB capacity**. Resize the node. This will cause hard downtime of 5 minutes or more. You will need to update the cpu/memory allocation in the mariadb job spec. It is intended that the mariadb job takes all of the resources on its node.
+
+### Backups and recovery
+
+Linode backups are enabled for each of the nodes in our cloud, and these serve as the primary backup mechanism.
+
+We can also use the backup of the mariadb node to produce a database dump if needed. `backup_mariadb_database.rb` automates most of this process.
