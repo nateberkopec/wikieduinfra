@@ -100,4 +100,12 @@ Useful commands:
 
 Linode backups are enabled for each of the nodes in our cloud, and these serve as the primary backup mechanism.
 
-We can also use the backup of the mariadb node to produce a database dump if needed. `backup_mariadb_database.rb` automates most of this process.
+We can also use the backup of the mariadb node to produce a database dump if needed. `backup_mariadb_database.rb` uses `linode-cli` to automate most of this process:
+
+* Get an inventory of linodes and identify the mariadb node and its backups
+* Create a new node and restore to the most recent backup to it.
+* Boot it in recovery mode so that `consul` doesn't disrupt the live production cloud.
+* Disable the `consul` service, then boot the image normally
+* Configure the node to access `/data/mariadb` via mysql/mariadb (not via a container)
+* Use `mysqldump` to generate (and save on your computer) a dashboard.sql file.
+
