@@ -2,6 +2,14 @@
 # https://github.com/linode/linode-cli
 # See also https://www.linode.com/community/questions/18752/linode-cli-restore-a-backup-to-a-new-linode
 
+# This script lets you generate a dashboard.sql database dump from a Linode snapshot backup of the mariadb node.
+# We can rely on the snapshots as our primary backup mechanism, and use this to make occasional copies of the
+# database that are independent of the node itself (since the backups will be destroyed along with the node).
+
+# We can also 'imageize' a backup disk after replicating it to a new node, in order to provide a persistent
+# backup that is independent of the node.
+
+
 require 'json'
 require 'open3'
 
