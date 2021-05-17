@@ -38,6 +38,12 @@ job "redis" {
       config {
         image = "redis:6.2.1"
         ports = ["6379"]
+        mounts = [{
+          type     = "bind"
+          source   = "../alloc/data"
+          target   = "/data"
+          readonly = false
+        }]
       }
 
       resources {
