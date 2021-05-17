@@ -63,3 +63,7 @@ variable "ssh_privkey" {
   type = string
   description = "Local path to the SSH private key for accessing the cluster"
 }
+
+variable "path_to_certs"{
+  type = string
+}

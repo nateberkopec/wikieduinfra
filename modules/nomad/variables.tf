@@ -67,3 +67,7 @@ variable "docker_domain" {
 variable "rails_domain" {
   type = string
 }
+
+variable "path_to_certs" {
+  type = string
+}

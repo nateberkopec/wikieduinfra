@@ -20,9 +20,9 @@ terraform {
 provider "nomad" {
   address = "https://${var.nomad_server_ip_address}:4646"
   secret_id = var.nomad_mgmt_token
-  ca_file = "../certs/nomad-agent-certs/nomad-agent-ca.pem"
-  cert_file = "../certs/nomad-agent-certs/global-client-nomad-0.pem"
-  key_file = "../certs/nomad-agent-certs/global-client-nomad-0-key.pem"
+  ca_file = "${var.path_to_certs}/nomad-agent-certs/nomad-agent-ca.pem"
+  cert_file = "${var.path_to_certs}/nomad-agent-certs/global-client-nomad-0.pem"
+  key_file = "${var.path_to_certs}/nomad-agent-certs/global-client-nomad-0-key.pem"
 }
 
 # Consul, for creating intentions
@@ -31,15 +31,15 @@ provider "consul" {
   address = "${var.nomad_server_ip_address}:8501"
   scheme = "https"
   token = var.consul_mgmt_token
-  ca_file = "../certs/consul-agent-certs/consul-agent-ca.pem"
-  cert_file = "../certs/consul-agent-certs/dc1-client-consul-0.pem"
-  key_file = "../certs/consul-agent-certs/dc1-client-consul-0-key.pem"
+  ca_file = "${var.path_to_certs}/consul-agent-certs/consul-agent-ca.pem"
+  cert_file = "${var.path_to_certs}/consul-agent-certs/dc1-client-consul-0.pem"
+  key_file = "${var.path_to_certs}/consul-agent-certs/dc1-client-consul-0-key.pem"
   insecure_https = true
 }
 
 resource "nomad_job" "redis" {
   jobspec = templatefile(
-              "${path.module}/nomad/jobs/redis.hcl.tmpl",
+              "${path.module}/jobs/redis.hcl.tmpl",
               {
                 "redis_cpu_hertz" = var.redis_cpu_hertz
                 "redis_memory" = var.redis_memory
@@ -101,7 +101,7 @@ resource "consul_config_entry" "redis" {
 
 resource "nomad_job" "memcache" {
   jobspec = templatefile(
-              "${path.module}/nomad/jobs/memcache.hcl.tmpl",
+              "${path.module}/jobs/memcache.hcl.tmpl",
               {
                 "memcache_cpu_hertz" = var.memcache_cpu_hertz
                 "memcache_memory" = var.memcache_memory
@@ -164,7 +164,7 @@ resource "consul_config_entry" "memcache" {
 
 resource "nomad_job" "mariadb" {
   jobspec = templatefile(
-              "${path.module}/nomad/jobs/mariadb.hcl.tmpl",
+              "${path.module}/jobs/mariadb.hcl.tmpl",
               {
                 "db_cpu_hertz" = var.db_cpu_hertz
                 "db_memory" = var.db_memory
@@ -227,7 +227,7 @@ resource "consul_config_entry" "mariadb" {
 
 resource "nomad_job" "docker_registry" {
   jobspec = templatefile(
-              "${path.module}/nomad/jobs/docker_registry.hcl.tmpl",
+              "${path.module}/jobs/docker_registry.hcl.tmpl",
               {
                 "docker_pass_encrypted" = var.docker_pass_encrypted
               }
@@ -236,7 +236,7 @@ resource "nomad_job" "docker_registry" {
 
 resource "nomad_job" "nginx" {
   jobspec = templatefile(
-              "${path.module}/nomad/jobs/nginx.hcl.tmpl",
+              "${path.module}/jobs/nginx.hcl.tmpl",
               {
                 "docker_domain" = var.docker_domain
                 "rails_domain" = var.rails_domain
@@ -278,11 +278,11 @@ resource "null_resource" "nomad_shell" {
     echo "
       export NOMAD_ADDR="https://${var.nomad_server_ip_address}:4646"
       export NOMAD_TOKEN=${var.nomad_mgmt_token}
-      export NOMAD_CA_PATH="${abspath(path.root)}/../certs/nomad-agent-certs/nomad-agent-ca.pem"
-      export NOMAD_CLIENT_CERT="${abspath(path.root)}/../certs/nomad-agent-certs/global-client-nomad-0.pem"
-      export NOMAD_CLIENT_KEY="${abspath(path.root)}/../certs/nomad-agent-certs/global-client-nomad-0-key.pem"
+      export NOMAD_CA_PATH="${var.path_to_certs}/nomad-agent-certs/nomad-agent-ca.pem"
+      export NOMAD_CLIENT_CERT="${var.path_to_certs}/nomad-agent-certs/global-client-nomad-0.pem"
+      export NOMAD_CLIENT_KEY="${var.path_to_certs}/nomad-agent-certs/global-client-nomad-0-key.pem"
       export NOMAD_SKIP_VERIFY="true"
-    " >> nomad.sh
+    " >> ${var.path_to_certs}/../nomad.sh
     EOF
   }
 }
@@ -293,9 +293,9 @@ resource "null_resource" "waypoint" {
     environment = {
       NOMAD_ADDR="https://${var.nomad_server_ip_address}:4646"
       NOMAD_TOKEN=var.nomad_mgmt_token
-      NOMAD_CA_PATH="${abspath(path.root)}/../certs/nomad-agent-certs/nomad-agent-ca.pem"
-      NOMAD_CLIENT_CERT="${abspath(path.root)}/../certs/nomad-agent-certs/global-client-nomad-0.pem"
-      NOMAD_CLIENT_KEY="${abspath(path.root)}/../certs/nomad-agent-certs/global-client-nomad-0-key.pem"
+      NOMAD_CA_PATH="${var.path_to_certs}/nomad-agent-certs/nomad-agent-ca.pem"
+      NOMAD_CLIENT_CERT="${var.path_to_certs}/nomad-agent-certs/global-client-nomad-0.pem"
+      NOMAD_CLIENT_KEY="${var.path_to_certs}/nomad-agent-certs/global-client-nomad-0-key.pem"
       NOMAD_SKIP_VERIFY="true"
     }
   }

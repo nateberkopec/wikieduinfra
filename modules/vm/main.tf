@@ -60,25 +60,15 @@ resource "linode_instance" "nomad_server" {
   }
 
   provisioner "local-exec" {
-    command = "mkdir -p ${abspath(path.root)}/../certs/consul-agent-certs/"
+    command = "mkdir -p ${var.path_to_certs}/consul-agent-certs/"
   }
 
   provisioner "local-exec" {
-    when    = destroy
-    command = "rm -r ${abspath(path.root)}/../certs"
+    command = "scp -i ${data.local_file.ssh_privkey.filename} -r root@${self.ip_address}:/root/consul-agent-certs ${var.path_to_certs}/"
   }
 
   provisioner "local-exec" {
-    when    = destroy
-    command = "rm ${abspath(path.root)}/../nomadserver/nomad.sh"
-  }
-
-  provisioner "local-exec" {
-    command = "scp -i ${data.local_file.ssh_privkey.filename} -r root@${self.ip_address}:/root/consul-agent-certs ${abspath(path.root)}/../certs"
-  }
-
-  provisioner "local-exec" {
-    command = "scp -i ${data.local_file.ssh_privkey.filename} -r root@${self.ip_address}:/root/nomad-agent-certs ${abspath(path.root)}/../certs"
+    command = "scp -i ${data.local_file.ssh_privkey.filename} -r root@${self.ip_address}:/root/nomad-agent-certs ${var.path_to_certs}/"
   }
 }
 
@@ -106,7 +96,7 @@ resource "linode_instance" "mariadb_node" {
   }
 
   provisioner "file" {
-    source      = "${abspath(path.root)}/../certs/consul-agent-certs"
+    source      = "${var.path_to_certs}/consul-agent-certs"
     destination = "/root"
 
     connection {
@@ -118,7 +108,7 @@ resource "linode_instance" "mariadb_node" {
   }
 
   provisioner "file" {
-    source      = "${abspath(path.root)}/../certs/nomad-agent-certs"
+    source      = "${var.path_to_certs}/nomad-agent-certs"
     destination = "/root"
 
     connection {
@@ -186,7 +176,7 @@ resource "linode_instance" "rails_web_node" {
   }
 
   provisioner "file" {
-    source      = "${abspath(path.root)}/../certs/consul-agent-certs"
+    source      = "${var.path_to_certs}/consul-agent-certs"
     destination = "/root"
 
     connection {
@@ -198,7 +188,7 @@ resource "linode_instance" "rails_web_node" {
   }
 
   provisioner "file" {
-    source      = "${abspath(path.root)}/../certs/nomad-agent-certs"
+    source      = "${var.path_to_certs}/nomad-agent-certs"
     destination = "/root"
 
     connection {
@@ -259,7 +249,7 @@ resource "linode_instance" "nginx_node" {
   watchdog_enabled= true
 
   provisioner "file" {
-    source      = "${abspath(path.root)}/../certs/consul-agent-certs"
+    source      = "${var.path_to_certs}/consul-agent-certs"
     destination = "/root"
 
     connection {
@@ -283,7 +273,7 @@ resource "linode_instance" "nginx_node" {
   }
 
   provisioner "file" {
-    source      = "${abspath(path.root)}/../certs/nomad-agent-certs"
+    source      = "${var.path_to_certs}/nomad-agent-certs"
     destination = "/root"
 
     connection {
@@ -344,7 +334,7 @@ resource "linode_instance" "nomad_node" {
   watchdog_enabled= true
 
   provisioner "file" {
-    source      = "${abspath(path.root)}/../certs/consul-agent-certs"
+    source      = "${var.path_to_certs}/consul-agent-certs"
     destination = "/root"
 
     connection {
@@ -368,7 +358,7 @@ resource "linode_instance" "nomad_node" {
   }
 
   provisioner "file" {
-    source      = "${abspath(path.root)}/../certs/nomad-agent-certs"
+    source      = "${var.path_to_certs}/nomad-agent-certs"
     destination = "/root"
 
     connection {

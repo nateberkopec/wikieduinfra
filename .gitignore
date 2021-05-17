@@ -2,8 +2,11 @@
 terraform.tfstate
 terraform.tfstate.backup
 .terraform/
+.terragrunt-cache/
 *.pem
+certs/
 secrets.tfvars
+secrets.auto.tfvars
 .DS_Store
 crash.log
 nomad.sh
