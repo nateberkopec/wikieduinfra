@@ -11,6 +11,11 @@ sudo echo "client {
     path      = \"/data/rails/\"
     read_only = false
   }
+
+  host_volume \"redis\" {
+    path      = \"/data/redis/\"
+    read_only = false
+  }
 }
 
 datacenter = \"dc1\"
