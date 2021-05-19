@@ -28,10 +28,6 @@ variable "nginx_node_ip_address" {
   type = string
 }
 
-variable "nomad_mgmt_token" {
-  type = string
-}
-
 variable "consul_mgmt_token" {
   type = string
 }
@@ -69,5 +65,9 @@ variable "rails_domain" {
 }
 
 variable "path_to_certs" {
+  type = string
+}
+
+variable "ssh_privkey" {
   type = string
 }

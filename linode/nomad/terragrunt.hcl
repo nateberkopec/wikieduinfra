@@ -1,10 +1,14 @@
+include {
+  path = find_in_parent_folders()
+}
+
 terraform {
   source = "../../modules//nomad"
 }
 
-dependency "linode" {
+dependency "vm" {
   config_path = "../vm"
-  mock_outputs_allowed_terraform_commands = ["init"]
+  mock_outputs_allowed_terraform_commands = ["init", "plan"]
   mock_outputs = {
     nomad_server_ip_address = "1"
     nginx_node_ip_address = "1"
@@ -23,17 +27,16 @@ dependency "linode" {
 }
 
 inputs = {
-  nomad_server_ip_address = dependency.linode.outputs.nomad_server_ip_address
-  nginx_node_ip_address = dependency.linode.outputs.nginx_node_ip_address
-  nomad_mgmt_token = dependency.linode.outputs.nomad_mgmt_token
-  consul_mgmt_token = dependency.linode.outputs.consul_mgmt_token
-  db_cpu_hertz = dependency.linode.outputs.db_cpu_hertz
-  db_memory = dependency.linode.outputs.db_memory
-  redis_cpu_hertz = dependency.linode.outputs.redis_cpu_hertz
-  redis_memory = dependency.linode.outputs.redis_memory
-  memcache_cpu_hertz = dependency.linode.outputs.memcache_cpu_hertz
-  memcache_memory = dependency.linode.outputs.memcache_memory
-  docker_domain = dependency.linode.outputs.docker_domain
-  rails_domain = dependency.linode.outputs.rails_domain
+  nomad_server_ip_address = dependency.vm.outputs.nomad_server_ip_address
+  nginx_node_ip_address = dependency.vm.outputs.nginx_node_ip_address
+  consul_mgmt_token = dependency.vm.outputs.consul_mgmt_token
+  db_cpu_hertz = dependency.vm.outputs.db_cpu_hertz
+  db_memory = dependency.vm.outputs.db_memory
+  redis_cpu_hertz = dependency.vm.outputs.redis_cpu_hertz
+  redis_memory = dependency.vm.outputs.redis_memory
+  memcache_cpu_hertz = dependency.vm.outputs.memcache_cpu_hertz
+  memcache_memory = dependency.vm.outputs.memcache_memory
+  docker_domain = dependency.vm.outputs.docker_domain
+  rails_domain = dependency.vm.outputs.rails_domain
   path_to_certs = abspath("./certs")
 }

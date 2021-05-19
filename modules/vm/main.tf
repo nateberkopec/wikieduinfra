@@ -1,34 +1,17 @@
 terraform {
   required_providers {
-    linode = {
-      source = "linode/linode"
-      version = "1.16.0"
-    }
-    local = {
-      source = "hashicorp/local"
-      version = "2.1.0"
+    null = {
+      source = "hashicorp/null"
+      version = "3.1.0"
     }
   }
-}
-
-provider "linode" {
-  token = var.linode_token
 }
 
 # Small node solely for running the nomad server
 # and the consul server.
 # We cannot schedule workloads here because they might
 # steal resources from the nomad server.
-resource "linode_instance" "nomad_server" {
-  label = "nomad"
-  image = "linode/debian10"
-  region = "us-west"
-  type = "g6-standard-1"
-  authorized_keys = [chomp(data.local_file.ssh_pubkey.content)]
-  root_pass = var.root_pass
-  backups_enabled = true
-  watchdog_enabled= true
-
+resource "null_resource" "nomad_server" {
   provisioner "file" {
     source      = "scripts/provision_host.sh"
     destination = "~/provision_host.sh"
@@ -37,7 +20,7 @@ resource "linode_instance" "nomad_server" {
       type     = "ssh"
       user     = "root"
       private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
+      host     = var.nomad_server_ip_address
     }
   }
 
@@ -51,12 +34,12 @@ resource "linode_instance" "nomad_server" {
       type     = "ssh"
       user     = "root"
       private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
+      host     = var.nomad_server_ip_address
     }
   }
 
   provisioner "local-exec" {
-    command = "ssh-keyscan ${self.ip_address} >> ~/.ssh/known_hosts"
+    command = "ssh-keyscan ${var.nomad_server_ip_address} >> ~/.ssh/known_hosts"
   }
 
   provisioner "local-exec" {
@@ -64,24 +47,17 @@ resource "linode_instance" "nomad_server" {
   }
 
   provisioner "local-exec" {
-    command = "scp -i ${data.local_file.ssh_privkey.filename} -r root@${self.ip_address}:/root/consul-agent-certs ${var.path_to_certs}/"
+    command = "scp -i ${data.local_file.ssh_privkey.filename} -r root@${var.nomad_server_ip_address}:/root/consul-agent-certs ${var.path_to_certs}/"
   }
 
   provisioner "local-exec" {
-    command = "scp -i ${data.local_file.ssh_privkey.filename} -r root@${self.ip_address}:/root/nomad-agent-certs ${var.path_to_certs}/"
+    command = "scp -i ${data.local_file.ssh_privkey.filename} -r root@${var.nomad_server_ip_address}:/root/nomad-agent-certs ${var.path_to_certs}/"
   }
 }
 
 # Node which contains the host volume for MariaDB
-resource "linode_instance" "mariadb_node" {
-  label = "nomad-mariadb-node"
-  image = "linode/debian10"
-  region = "us-west"
-  type = "g6-standard-4"
-  authorized_keys = [chomp(data.local_file.ssh_pubkey.content)]
-  root_pass = var.root_pass
-  backups_enabled = true
-  watchdog_enabled= true
+resource "null_resource" "mariadb_node" {
+  depends_on = [ null_resource.nomad_server ]
 
   provisioner "file" {
     source      = "scripts/provision_agent.sh"
@@ -91,7 +67,7 @@ resource "linode_instance" "mariadb_node" {
       type     = "ssh"
       user     = "root"
       private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
+      host     = var.mariadb_node_ip_address
     }
   }
 
@@ -103,7 +79,7 @@ resource "linode_instance" "mariadb_node" {
       type     = "ssh"
       user     = "root"
       private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
+      host     = var.mariadb_node_ip_address
     }
   }
 
@@ -115,7 +91,7 @@ resource "linode_instance" "mariadb_node" {
       type     = "ssh"
       user     = "root"
       private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
+      host     = var.mariadb_node_ip_address
     }
   }
 
@@ -127,14 +103,14 @@ resource "linode_instance" "mariadb_node" {
       type     = "ssh"
       user     = "root"
       private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
+      host     = var.mariadb_node_ip_address
     }
   }
 
   provisioner "remote-exec" {
     inline = [
       "chmod +x provision_agent.sh",
-      "./provision_agent.sh mariadb ${var.consul_mgmt_token} ${var.consul_gossip_token} ${linode_instance.nomad_server.ip_address} ${var.new_relic_license_key}",
+      "./provision_agent.sh mariadb ${var.consul_mgmt_token} ${var.consul_gossip_token} ${var.nomad_server_ip_address} ${var.new_relic_license_key}",
       "chmod +x provision_agent_mariadb.sh",
       "./provision_agent_mariadb.sh mariadb ${var.consul_mgmt_token}"
     ]
@@ -143,25 +119,18 @@ resource "linode_instance" "mariadb_node" {
       type     = "ssh"
       user     = "root"
       private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
+      host     = var.mariadb_node_ip_address
     }
   }
 
   provisioner "local-exec" {
-    command = "ssh-keyscan ${self.ip_address} >> ~/.ssh/known_hosts"
+    command = "ssh-keyscan ${var.mariadb_node_ip_address} >> ~/.ssh/known_hosts"
   }
 }
 
 # Node which contains the host volume for Rails web
-resource "linode_instance" "rails_web_node" {
-  label = "nomad-rails-web-node"
-  image = "linode/debian10"
-  region = "us-west"
-  type = "g6-standard-4"
-  authorized_keys = [chomp(data.local_file.ssh_pubkey.content)]
-  root_pass = var.root_pass
-  backups_enabled = true
-  watchdog_enabled= true
+resource "null_resource" "rails_web_node" {
+  depends_on = [ null_resource.nomad_server ]
 
   provisioner "file" {
     source      = "scripts/provision_agent.sh"
@@ -171,7 +140,7 @@ resource "linode_instance" "rails_web_node" {
       type     = "ssh"
       user     = "root"
       private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
+      host     = var.rails_web_node_ip_address
     }
   }
 
@@ -183,7 +152,7 @@ resource "linode_instance" "rails_web_node" {
       type     = "ssh"
       user     = "root"
       private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
+      host     = var.rails_web_node_ip_address
     }
   }
 
@@ -195,7 +164,7 @@ resource "linode_instance" "rails_web_node" {
       type     = "ssh"
       user     = "root"
       private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
+      host     = var.rails_web_node_ip_address
     }
   }
 
@@ -207,14 +176,14 @@ resource "linode_instance" "rails_web_node" {
       type     = "ssh"
       user     = "root"
       private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
+      host     = var.rails_web_node_ip_address
     }
   }
 
   provisioner "remote-exec" {
     inline = [
       "chmod +x provision_agent.sh",
-      "./provision_agent.sh railsweb ${var.consul_mgmt_token} ${var.consul_gossip_token} ${linode_instance.nomad_server.ip_address} ${var.new_relic_license_key}",
+      "./provision_agent.sh railsweb ${var.consul_mgmt_token} ${var.consul_gossip_token} ${var.nomad_server_ip_address} ${var.new_relic_license_key}",
       "chmod +x provision_agent_railsweb.sh",
       "./provision_agent_railsweb.sh railsweb ${var.consul_mgmt_token}"
     ]
@@ -223,12 +192,12 @@ resource "linode_instance" "rails_web_node" {
       type     = "ssh"
       user     = "root"
       private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
+      host     = var.rails_web_node_ip_address
     }
   }
 
   provisioner "local-exec" {
-    command = "ssh-keyscan ${self.ip_address} >> ~/.ssh/known_hosts"
+    command = "ssh-keyscan ${var.rails_web_node_ip_address} >> ~/.ssh/known_hosts"
   }
 }
 
@@ -238,15 +207,8 @@ resource "linode_instance" "rails_web_node" {
 # particular node stays the same no matter what. On Linode, that's easiest
 # if we just keep the linode instance the same, forever. So, we put NGINX
 # on its own node just so that we never have to worry about moving it.
-resource "linode_instance" "nginx_node" {
-  label = "nomad-nginx-node"
-  image = "linode/debian10"
-  region = "us-west"
-  type = "g6-standard-1"
-  authorized_keys = [chomp(data.local_file.ssh_pubkey.content)]
-  root_pass = var.root_pass
-  backups_enabled = true
-  watchdog_enabled= true
+resource "null_resource" "nginx_node" {
+  depends_on = [ null_resource.nomad_server ]
 
   provisioner "file" {
     source      = "${var.path_to_certs}/consul-agent-certs"
@@ -256,7 +218,7 @@ resource "linode_instance" "nginx_node" {
       type     = "ssh"
       user     = "root"
       private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
+      host     = var.nginx_node_ip_address
     }
   }
 
@@ -268,7 +230,7 @@ resource "linode_instance" "nginx_node" {
       type     = "ssh"
       user     = "root"
       private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
+      host     = var.nginx_node_ip_address
     }
   }
 
@@ -280,7 +242,7 @@ resource "linode_instance" "nginx_node" {
       type     = "ssh"
       user     = "root"
       private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
+      host     = var.nginx_node_ip_address
     }
   }
 
@@ -292,14 +254,14 @@ resource "linode_instance" "nginx_node" {
       type     = "ssh"
       user     = "root"
       private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
+      host     = var.nginx_node_ip_address
     }
   }
 
   provisioner "remote-exec" {
     inline = [
       "chmod +x provision_agent.sh",
-      "./provision_agent.sh nginx ${var.consul_mgmt_token} ${var.consul_gossip_token} ${linode_instance.nomad_server.ip_address} ${var.new_relic_license_key} ${var.new_relic_license_key}",
+      "./provision_agent.sh nginx ${var.consul_mgmt_token} ${var.consul_gossip_token} ${var.nomad_server_ip_address} ${var.new_relic_license_key} ${var.new_relic_license_key}",
       "chmod +x provision_agent_nginx.sh",
       "./provision_agent_nginx.sh nginx ${var.consul_mgmt_token} ${var.rails_domain} ${var.docker_domain} ${var.letsencrypt_email}"
     ]
@@ -308,12 +270,12 @@ resource "linode_instance" "nginx_node" {
       type     = "ssh"
       user     = "root"
       private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
+      host     = var.nginx_node_ip_address
     }
   }
 
   provisioner "local-exec" {
-    command = "ssh-keyscan ${self.ip_address} >> ~/.ssh/known_hosts"
+    command = "ssh-keyscan ${var.nginx_node_ip_address} >> ~/.ssh/known_hosts"
   }
 }
 
@@ -321,17 +283,9 @@ resource "linode_instance" "nginx_node" {
 # "stateless" DB like memcached/redis
 #
 # Scale this node up with count if you need more Sidekiq or Rails processes
-resource "linode_instance" "nomad_node" {
+resource "null_resource" "nomad_node" {
+  depends_on = [ null_resource.nomad_server ]
   count = 2
-
-  label = "nomad-agent-${count.index}"
-  image = "linode/debian10"
-  region = "us-west"
-  type = "g6-standard-4"
-  authorized_keys = [chomp(data.local_file.ssh_pubkey.content)]
-  root_pass = var.root_pass
-  backups_enabled = true
-  watchdog_enabled= true
 
   provisioner "file" {
     source      = "${var.path_to_certs}/consul-agent-certs"
@@ -341,7 +295,7 @@ resource "linode_instance" "nomad_node" {
       type     = "ssh"
       user     = "root"
       private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
+      host     = var.nomad_agent_ip_addresses[count.index]
     }
   }
 
@@ -353,7 +307,7 @@ resource "linode_instance" "nomad_node" {
       type     = "ssh"
       user     = "root"
       private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
+      host     = var.nomad_agent_ip_addresses[count.index]
     }
   }
 
@@ -365,7 +319,7 @@ resource "linode_instance" "nomad_node" {
       type     = "ssh"
       user     = "root"
       private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
+      host     = var.nomad_agent_ip_addresses[count.index]
     }
   }
 
@@ -377,14 +331,14 @@ resource "linode_instance" "nomad_node" {
       type     = "ssh"
       user     = "root"
       private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
+      host     = var.nomad_agent_ip_addresses[count.index]
     }
   }
 
   provisioner "remote-exec" {
     inline = [
       "chmod +x provision_agent.sh",
-      "./provision_agent.sh ${count.index} ${var.consul_mgmt_token} ${var.consul_gossip_token} ${linode_instance.nomad_server.ip_address} ${var.new_relic_license_key}",
+      "./provision_agent.sh ${count.index} ${var.consul_mgmt_token} ${var.consul_gossip_token} ${var.nomad_server_ip_address} ${var.new_relic_license_key}",
       "chmod +x provision_agent_novol.sh",
       "./provision_agent_novol.sh ${count.index} ${var.consul_mgmt_token}"
     ]
@@ -393,27 +347,15 @@ resource "linode_instance" "nomad_node" {
       type     = "ssh"
       user     = "root"
       private_key = chomp(data.local_file.ssh_privkey.content)
-      host     = self.ip_address
+      host     = var.nomad_agent_ip_addresses[count.index]
     }
   }
 
   provisioner "local-exec" {
-    command = "ssh-keyscan ${self.ip_address} >> ~/.ssh/known_hosts"
+    command = "ssh-keyscan ${var.nomad_agent_ip_addresses[count.index]} >> ~/.ssh/known_hosts"
   }
-}
-
-# Point this to wherever the SSH key you want to use to manage your
-# infra lives
-data "local_file" "ssh_pubkey" {
-  filename = var.ssh_pubkey
 }
 
 data "local_file" "ssh_privkey" {
   filename = var.ssh_privkey
-}
-
-# Note this means that the server must have jq installed during the provision step
-data "external" "nomad_bootstrap_acl" {
-  program = ["sh", "scripts/get_bootstrap.sh", data.local_file.ssh_privkey.filename]
-  query = { "ip_address": linode_instance.nomad_server.ip_address }
 }

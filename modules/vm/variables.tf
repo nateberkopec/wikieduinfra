@@ -22,21 +22,6 @@ variable "new_relic_license_key" {
   # sensitive = true
 }
 
-variable "linode_token" {
-  type    = string
-  description = "Your Linode Access Token."
-  # sensitive = true
-}
-
-variable "root_pass" {
-  type = string
-  description = <<EOT
-    All root passwords will be set to this value.
-    Use `openssl rand -hex 16` to generate a sufficiently random value.
-  EOT
-  # sensitive = true
-}
-
 variable "docker_domain" {
   type = string
   description = "FQDN where the docker registry will be hosted"
@@ -55,15 +40,31 @@ variable "letsencrypt_email" {
   default = "sage@wikiedu.org"
 }
 
-variable "ssh_pubkey" {
-  type = string
-  description = "Local path to the SSH public key for accessing the cluster"
-}
 variable "ssh_privkey" {
   type = string
   description = "Local path to the SSH private key for accessing the cluster"
 }
 
-variable "path_to_certs"{
+variable "path_to_certs" {
   type = string
+}
+
+variable "nomad_server_ip_address" {
+  type = string
+}
+
+variable "nginx_node_ip_address" {
+  type = string
+}
+
+variable "mariadb_node_ip_address" {
+  type = string
+}
+
+variable "rails_web_node_ip_address" {
+  type = string
+}
+
+variable "nomad_agent_ip_addresses" {
+  type = list
 }

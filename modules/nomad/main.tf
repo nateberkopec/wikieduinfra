@@ -15,11 +15,20 @@ terraform {
   }
 }
 
+data "local_file" "ssh_privkey" {
+  filename = var.ssh_privkey
+}
+
+data "external" "nomad_bootstrap_acl" {
+  program = ["sh", "scripts/get_bootstrap.sh", data.local_file.ssh_privkey.filename]
+  query = { "ip_address": var.nomad_server_ip_address }
+}
+
 # Nomad
 
 provider "nomad" {
   address = "https://${var.nomad_server_ip_address}:4646"
-  secret_id = var.nomad_mgmt_token
+  secret_id = data.external.nomad_bootstrap_acl.result.token
   ca_file = "${var.path_to_certs}/nomad-agent-certs/nomad-agent-ca.pem"
   cert_file = "${var.path_to_certs}/nomad-agent-certs/global-client-nomad-0.pem"
   key_file = "${var.path_to_certs}/nomad-agent-certs/global-client-nomad-0-key.pem"
@@ -277,7 +286,7 @@ resource "null_resource" "nomad_shell" {
     command = <<EOF
     echo "
       export NOMAD_ADDR="https://${var.nomad_server_ip_address}:4646"
-      export NOMAD_TOKEN=${var.nomad_mgmt_token}
+      export NOMAD_TOKEN=${data.external.nomad_bootstrap_acl.result.token}
       export NOMAD_CA_PATH="${var.path_to_certs}/nomad-agent-certs/nomad-agent-ca.pem"
       export NOMAD_CLIENT_CERT="${var.path_to_certs}/nomad-agent-certs/global-client-nomad-0.pem"
       export NOMAD_CLIENT_KEY="${var.path_to_certs}/nomad-agent-certs/global-client-nomad-0-key.pem"
@@ -292,7 +301,7 @@ resource "null_resource" "waypoint" {
     command = "waypoint install -platform=nomad -nomad-dc=dc1 -accept-tos"
     environment = {
       NOMAD_ADDR="https://${var.nomad_server_ip_address}:4646"
-      NOMAD_TOKEN=var.nomad_mgmt_token
+      NOMAD_TOKEN=data.external.nomad_bootstrap_acl.result.token
       NOMAD_CA_PATH="${var.path_to_certs}/nomad-agent-certs/nomad-agent-ca.pem"
       NOMAD_CLIENT_CERT="${var.path_to_certs}/nomad-agent-certs/global-client-nomad-0.pem"
       NOMAD_CLIENT_KEY="${var.path_to_certs}/nomad-agent-certs/global-client-nomad-0-key.pem"

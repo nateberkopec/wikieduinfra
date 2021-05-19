@@ -1,13 +1,9 @@
 output "nomad_server_ip_address" {
-  value = linode_instance.nomad_server.ip_address
+  value = var.nomad_server_ip_address
 }
 
 output "nginx_node_ip_address" {
-  value = linode_instance.nginx_node.ip_address
-}
-
-output "nomad_mgmt_token" {
-  value = data.external.nomad_bootstrap_acl.result.token
+  value = var.nginx_node_ip_address
 }
 
 output "consul_mgmt_token" {
