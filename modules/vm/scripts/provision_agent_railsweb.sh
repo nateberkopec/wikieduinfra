@@ -3,12 +3,18 @@
 sudo mkdir --parents /etc/nomad.d
 sudo chmod 700 /etc/nomad.d
 sudo mkdir -p /data/rails
+sudo mkdir -p /data/redis
 sudo touch /etc/nomad.d/client.hcl
 sudo echo "client {
   enabled = true
 
   host_volume \"rails\" {
     path      = \"/data/rails/\"
+    read_only = false
+  }
+
+  host_volume \"redis\" {
+    path      = \"/data/redis/\"
     read_only = false
   }
 }
