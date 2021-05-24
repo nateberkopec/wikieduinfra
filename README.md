@@ -45,7 +45,7 @@ There are also some modules used by both `linode` and `wikimedia`:
 2. Ensure all binaries (below) are on your `PATH`
 3. From either the `linode` or `wikimedia` directories, `terragrunt run-all init`
 4. From the same directory, `terragrunt run-all apply`
-   1. At this point, you can reach the Nomad UI by via `https://{nomad_server_ip_address}:4646`. The required ACL token Secret ID is the `nomad_mgmt_token`, also available on the Nomad server in `/root/bootstrap.token`.
+   1. At this point, you can reach the Nomad UI by via `https://{nomad_server_ip_address}:4646`. The required ACL token Secret ID is the `nomad_mgmt_token`, also available on the Nomad server in `~/bootstrap.token`.
 5. Configure DNS
    1. Create an A record to point the rails domain to the nginx node's IP address
    2. Create an A record to point the docker domain to the nginx node's IP address as well
@@ -139,3 +139,9 @@ We can also use the backup of the mariadb node to produce a database dump if nee
 * Configure the node to access `/data/mariadb` via mysql/mariadb (not via a container)
 * Use `mysqldump` to generate (and save on your computer) a dashboard.sql file.
 
+### Migration from V1 to V2
+
+1. Move the `linode/linode/terraform.tfstate` and `nomadserver/nomadserver.tfstate` files to `./linode.tfstate` and `./nomadserver.tfstate` respectively.
+1. Copy the `certs` directory you have to `./certs`.
+1. Update your checked-out code to v2 (git pull, whatever)
+1. `terragrunt run-all init` from `./`, twice.

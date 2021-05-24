@@ -71,3 +71,7 @@ variable "path_to_certs" {
 variable "ssh_privkey" {
   type = string
 }
+
+variable "ssh_user" {
+  type = string
+}

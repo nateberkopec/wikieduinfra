@@ -7,6 +7,11 @@ terraform {
   }
 }
 
+locals {
+  scp_cmd_consul = var.bastion_host != null ? "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${data.local_file.ssh_privkey.filename} -o ProxyCommand='ssh -a -W ${var.ssh_user}@${var.bastion_host}' -r ${var.ssh_user}@${var.nomad_server_ip_address}:/root/consul-agent-certs ${var.path_to_certs}/" : "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${data.local_file.ssh_privkey.filename} -r ${var.ssh_user}@${var.nomad_server_ip_address}:/root/consul-agent-certs ${var.path_to_certs}/"
+  scp_cmd_nomad = var.bastion_host != null ? "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${data.local_file.ssh_privkey.filename} -o ProxyCommand='ssh -a -W ${var.ssh_user}@${var.bastion_host}' -r ${var.ssh_user}@${var.nomad_server_ip_address}:/root/nomad-agent-certs ${var.path_to_certs}/" : "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${data.local_file.ssh_privkey.filename} -r root@${var.nomad_server_ip_address}:/root/nomad-agent-certs ${var.path_to_certs}/"
+}
+
 # Small node solely for running the nomad server
 # and the consul server.
 # We cannot schedule workloads here because they might
@@ -18,9 +23,10 @@ resource "null_resource" "nomad_server" {
 
     connection {
       type     = "ssh"
-      user     = "root"
+      user     = var.ssh_user
       private_key = chomp(data.local_file.ssh_privkey.content)
       host     = var.nomad_server_ip_address
+      bastion_host = var.bastion_host
     }
   }
 
@@ -32,14 +38,11 @@ resource "null_resource" "nomad_server" {
 
     connection {
       type     = "ssh"
-      user     = "root"
+      user     = var.ssh_user
       private_key = chomp(data.local_file.ssh_privkey.content)
       host     = var.nomad_server_ip_address
+      bastion_host = var.bastion_host
     }
-  }
-
-  provisioner "local-exec" {
-    command = "ssh-keyscan ${var.nomad_server_ip_address} >> ~/.ssh/known_hosts"
   }
 
   provisioner "local-exec" {
@@ -47,11 +50,11 @@ resource "null_resource" "nomad_server" {
   }
 
   provisioner "local-exec" {
-    command = "scp -i ${data.local_file.ssh_privkey.filename} -r root@${var.nomad_server_ip_address}:/root/consul-agent-certs ${var.path_to_certs}/"
+    command = local.scp_cmd_consul
   }
 
   provisioner "local-exec" {
-    command = "scp -i ${data.local_file.ssh_privkey.filename} -r root@${var.nomad_server_ip_address}:/root/nomad-agent-certs ${var.path_to_certs}/"
+    command = local.scp_cmd_nomad
   }
 }
 
@@ -65,9 +68,10 @@ resource "null_resource" "mariadb_node" {
 
     connection {
       type     = "ssh"
-      user     = "root"
+      user     = var.ssh_user
       private_key = chomp(data.local_file.ssh_privkey.content)
       host     = var.mariadb_node_ip_address
+      bastion_host = var.bastion_host
     }
   }
 
@@ -77,9 +81,10 @@ resource "null_resource" "mariadb_node" {
 
     connection {
       type     = "ssh"
-      user     = "root"
+      user     = var.ssh_user
       private_key = chomp(data.local_file.ssh_privkey.content)
       host     = var.mariadb_node_ip_address
+      bastion_host = var.bastion_host
     }
   }
 
@@ -89,9 +94,10 @@ resource "null_resource" "mariadb_node" {
 
     connection {
       type     = "ssh"
-      user     = "root"
+      user     = var.ssh_user
       private_key = chomp(data.local_file.ssh_privkey.content)
       host     = var.mariadb_node_ip_address
+      bastion_host = var.bastion_host
     }
   }
 
@@ -101,9 +107,10 @@ resource "null_resource" "mariadb_node" {
 
     connection {
       type     = "ssh"
-      user     = "root"
+      user     = var.ssh_user
       private_key = chomp(data.local_file.ssh_privkey.content)
       host     = var.mariadb_node_ip_address
+      bastion_host = var.bastion_host
     }
   }
 
@@ -117,14 +124,11 @@ resource "null_resource" "mariadb_node" {
 
     connection {
       type     = "ssh"
-      user     = "root"
+      user     = var.ssh_user
       private_key = chomp(data.local_file.ssh_privkey.content)
       host     = var.mariadb_node_ip_address
+      bastion_host = var.bastion_host
     }
-  }
-
-  provisioner "local-exec" {
-    command = "ssh-keyscan ${var.mariadb_node_ip_address} >> ~/.ssh/known_hosts"
   }
 }
 
@@ -138,9 +142,10 @@ resource "null_resource" "rails_web_node" {
 
     connection {
       type     = "ssh"
-      user     = "root"
+      user     = var.ssh_user
       private_key = chomp(data.local_file.ssh_privkey.content)
       host     = var.rails_web_node_ip_address
+      bastion_host = var.bastion_host
     }
   }
 
@@ -150,9 +155,10 @@ resource "null_resource" "rails_web_node" {
 
     connection {
       type     = "ssh"
-      user     = "root"
+      user     = var.ssh_user
       private_key = chomp(data.local_file.ssh_privkey.content)
       host     = var.rails_web_node_ip_address
+      bastion_host = var.bastion_host
     }
   }
 
@@ -162,9 +168,10 @@ resource "null_resource" "rails_web_node" {
 
     connection {
       type     = "ssh"
-      user     = "root"
+      user     = var.ssh_user
       private_key = chomp(data.local_file.ssh_privkey.content)
       host     = var.rails_web_node_ip_address
+      bastion_host = var.bastion_host
     }
   }
 
@@ -174,9 +181,10 @@ resource "null_resource" "rails_web_node" {
 
     connection {
       type     = "ssh"
-      user     = "root"
+      user     = var.ssh_user
       private_key = chomp(data.local_file.ssh_privkey.content)
       host     = var.rails_web_node_ip_address
+      bastion_host = var.bastion_host
     }
   }
 
@@ -190,14 +198,11 @@ resource "null_resource" "rails_web_node" {
 
     connection {
       type     = "ssh"
-      user     = "root"
+      user     = var.ssh_user
       private_key = chomp(data.local_file.ssh_privkey.content)
       host     = var.rails_web_node_ip_address
+      bastion_host = var.bastion_host
     }
-  }
-
-  provisioner "local-exec" {
-    command = "ssh-keyscan ${var.rails_web_node_ip_address} >> ~/.ssh/known_hosts"
   }
 }
 
@@ -216,9 +221,10 @@ resource "null_resource" "nginx_node" {
 
     connection {
       type     = "ssh"
-      user     = "root"
+      user     = var.ssh_user
       private_key = chomp(data.local_file.ssh_privkey.content)
       host     = var.nginx_node_ip_address
+      bastion_host = var.bastion_host
     }
   }
 
@@ -228,9 +234,10 @@ resource "null_resource" "nginx_node" {
 
     connection {
       type     = "ssh"
-      user     = "root"
+      user     = var.ssh_user
       private_key = chomp(data.local_file.ssh_privkey.content)
       host     = var.nginx_node_ip_address
+      bastion_host = var.bastion_host
     }
   }
 
@@ -240,9 +247,10 @@ resource "null_resource" "nginx_node" {
 
     connection {
       type     = "ssh"
-      user     = "root"
+      user     = var.ssh_user
       private_key = chomp(data.local_file.ssh_privkey.content)
       host     = var.nginx_node_ip_address
+      bastion_host = var.bastion_host
     }
   }
 
@@ -252,9 +260,10 @@ resource "null_resource" "nginx_node" {
 
     connection {
       type     = "ssh"
-      user     = "root"
+      user     = var.ssh_user
       private_key = chomp(data.local_file.ssh_privkey.content)
       host     = var.nginx_node_ip_address
+      bastion_host = var.bastion_host
     }
   }
 
@@ -268,14 +277,11 @@ resource "null_resource" "nginx_node" {
 
     connection {
       type     = "ssh"
-      user     = "root"
+      user     = var.ssh_user
       private_key = chomp(data.local_file.ssh_privkey.content)
       host     = var.nginx_node_ip_address
+      bastion_host = var.bastion_host
     }
-  }
-
-  provisioner "local-exec" {
-    command = "ssh-keyscan ${var.nginx_node_ip_address} >> ~/.ssh/known_hosts"
   }
 }
 
@@ -293,9 +299,10 @@ resource "null_resource" "nomad_node" {
 
     connection {
       type     = "ssh"
-      user     = "root"
+      user     = var.ssh_user
       private_key = chomp(data.local_file.ssh_privkey.content)
       host     = var.nomad_agent_ip_addresses[count.index]
+      bastion_host = var.bastion_host
     }
   }
 
@@ -305,9 +312,10 @@ resource "null_resource" "nomad_node" {
 
     connection {
       type     = "ssh"
-      user     = "root"
+      user     = var.ssh_user
       private_key = chomp(data.local_file.ssh_privkey.content)
       host     = var.nomad_agent_ip_addresses[count.index]
+      bastion_host = var.bastion_host
     }
   }
 
@@ -317,9 +325,10 @@ resource "null_resource" "nomad_node" {
 
     connection {
       type     = "ssh"
-      user     = "root"
+      user     = var.ssh_user
       private_key = chomp(data.local_file.ssh_privkey.content)
       host     = var.nomad_agent_ip_addresses[count.index]
+      bastion_host = var.bastion_host
     }
   }
 
@@ -329,9 +338,10 @@ resource "null_resource" "nomad_node" {
 
     connection {
       type     = "ssh"
-      user     = "root"
+      user     = var.ssh_user
       private_key = chomp(data.local_file.ssh_privkey.content)
       host     = var.nomad_agent_ip_addresses[count.index]
+      bastion_host = var.bastion_host
     }
   }
 
@@ -345,14 +355,11 @@ resource "null_resource" "nomad_node" {
 
     connection {
       type     = "ssh"
-      user     = "root"
+      user     = var.ssh_user
       private_key = chomp(data.local_file.ssh_privkey.content)
       host     = var.nomad_agent_ip_addresses[count.index]
+      bastion_host = var.bastion_host
     }
-  }
-
-  provisioner "local-exec" {
-    command = "ssh-keyscan ${var.nomad_agent_ip_addresses[count.index]} >> ~/.ssh/known_hosts"
   }
 }
 

@@ -20,7 +20,7 @@ data "local_file" "ssh_privkey" {
 }
 
 data "external" "nomad_bootstrap_acl" {
-  program = ["sh", "scripts/get_bootstrap.sh", data.local_file.ssh_privkey.filename]
+  program = ["sh", "scripts/get_bootstrap.sh", data.local_file.ssh_privkey.filename, var.ssh_user]
   query = { "ip_address": var.nomad_server_ip_address }
 }
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+[ `whoami` = root ] || exec su -c $0 root
 
 sudo mkdir --parents /etc/nomad.d
 sudo chmod 700 /etc/nomad.d

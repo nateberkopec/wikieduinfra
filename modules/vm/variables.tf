@@ -45,6 +45,14 @@ variable "ssh_privkey" {
   description = "Local path to the SSH private key for accessing the cluster"
 }
 
+variable "ssh_user" {
+  type = string
+}
+
+variable "bastion_host" {
+  type = string
+}
+
 variable "path_to_certs" {
   type = string
 }

@@ -32,6 +32,7 @@ resource "linode_instance" "nomad_server" {
   root_pass = var.root_pass
   backups_enabled = true
   watchdog_enabled= true
+
 }
 
 resource "linode_instance" "mariadb_node" {
@@ -43,6 +44,7 @@ resource "linode_instance" "mariadb_node" {
   root_pass = var.root_pass
   backups_enabled = true
   watchdog_enabled= true
+
 }
 
 resource "linode_instance" "rails_web_node" {
@@ -54,6 +56,7 @@ resource "linode_instance" "rails_web_node" {
   root_pass = var.root_pass
   backups_enabled = true
   watchdog_enabled= true
+
 }
 
 resource "linode_instance" "nginx_node" {
@@ -65,6 +68,7 @@ resource "linode_instance" "nginx_node" {
   root_pass = var.root_pass
   backups_enabled = true
   watchdog_enabled= true
+
 }
 
 resource "linode_instance" "nomad_node" {
@@ -78,4 +82,5 @@ resource "linode_instance" "nomad_node" {
   root_pass = var.root_pass
   backups_enabled = true
   watchdog_enabled= true
+
 }
