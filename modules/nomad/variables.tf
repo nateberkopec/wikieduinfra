@@ -87,3 +87,7 @@ variable "nomad_server_external_address" {
 variable "mariadb" {
   type = bool
 }
+
+variable "waypoint_domain" {
+  type = string
+}

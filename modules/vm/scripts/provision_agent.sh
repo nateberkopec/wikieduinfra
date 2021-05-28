@@ -10,9 +10,6 @@ sudo apt-get install -yq --no-install-recommends \
   jq \
   software-properties-common
 
-sudo mkdir -p /etc/clusterconfig
-sudo chown -R $USER /etc/clusterconfig
-
 # AGENT ONLY - Docker
 
 curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/docker-archive-keyring.gpg

@@ -1,0 +1,141 @@
+job "nginx" {
+  datacenters = ["dc1"]
+
+  group "nginx" {
+    network {
+      mode = "bridge"
+      port "http" {
+        static = 80
+      }
+    }
+
+    volume "nginx-etc-letsencrypt" {
+      type      = "host"
+      read_only = false
+      source    = "nginx-etc-letsencrypt"
+    }
+
+    service {
+      name = "nginx"
+
+      connect {
+        sidecar_service {
+          proxy {
+            upstreams {
+              destination_name = "docker-registry"
+              local_bind_port  = 3000
+            }
+            upstreams {
+              destination_name = "puma"
+              local_bind_port  = 3001
+            }
+          }
+        }
+      }
+    }
+
+    task "nginx" {
+      driver = "docker"
+
+      volume_mount {
+        volume      = "nginx-etc-letsencrypt"
+        destination = "/etc/letsencrypt"
+        read_only   = false
+      }
+
+      config {
+        image = "nginx"
+
+        ports = ["http", "https"]
+
+        volumes = [
+          "local:/etc/nginx/conf.d",
+        ]
+      }
+
+      resources {
+        cpu    = 1500 # sized to take up the given linode, minus envoy proxy
+        memory = 1500
+      }
+
+      env {
+        WIKIED_DOCKER_DN = "${ docker_domain }"
+        WIKIED_RAILS_DN = "${ rails_domain }"
+        WIKIED_WAYPOINT_DN = "${ rails_domain }"
+      }
+
+      template {
+        data = <<EOF
+upstream docker {
+  server {{ or (env "NOMAD_UPSTREAM_ADDR_docker_registry") "127.0.0.1" }};
+}
+
+upstream rails {
+  server {{ or (env "NOMAD_UPSTREAM_ADDR_puma") "127.0.0.1" }};
+}
+
+upstream rails {
+  server {{ or (env "NOMAD_UPSTREAM_ADDR_waypoint-server") "127.0.0.1" }};
+}
+
+server {
+  listen 80;
+  server_name {{ or (env "WIKIED_DOCKER_DN") "127.0.0.1" }};
+
+  client_max_body_size 0;
+  chunked_transfer_encoding on;
+
+  location / {
+    proxy_set_header  Host              $http_host;
+    proxy_set_header  X-Real-IP         $remote_addr;
+    proxy_set_header  X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header  X-Forwarded-Proto $scheme;
+    proxy_read_timeout                  900;
+    proxy_pass http://docker;
+  }
+}
+
+server {
+  listen 80;
+  server_name {{ or (env "WIKIED_RAILS_DN") "127.0.0.1" }};
+
+  location / {
+    proxy_set_header  Host              $http_host;
+    proxy_set_header  X-Real-IP         $remote_addr;
+    proxy_set_header  X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header  X-Forwarded-Proto $scheme;
+    proxy_pass http://rails;
+    # Make sure slow routes of the Rails app have enough time to resolve.
+    # 5 minutes instead of the default of 1 minute.
+    proxy_read_timeout 300;
+    proxy_connect_timeout 300;
+    proxy_send_timeout 300;
+  }
+}
+
+server {
+  listen 80;
+  server_name {{ or (env "WIKIED_WAYPOINT_DN") "127.0.0.1" }};
+
+  location / {
+    proxy_set_header  Host              $http_host;
+    proxy_set_header  X-Real-IP         $remote_addr;
+    proxy_set_header  X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header  X-Forwarded-Proto $scheme;
+    proxy_pass http://waypoint;
+    # Make sure slow routes of the Rails app have enough time to resolve.
+    # 5 minutes instead of the default of 1 minute.
+    proxy_read_timeout 300;
+    proxy_connect_timeout 300;
+    proxy_send_timeout 300;
+  }
+}
+EOF
+
+        destination   = "local/load-balancer.conf"
+        change_mode   = "signal"
+        change_signal = "SIGHUP"
+      }
+    }
+  }
+}

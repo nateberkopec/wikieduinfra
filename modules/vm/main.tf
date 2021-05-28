@@ -66,6 +66,21 @@ resource "null_resource" "mariadb_node" {
 
   depends_on = [ null_resource.nomad_server ]
 
+  provisioner "remote-exec" {
+    inline = [
+      "sudo mkdir -p /etc/clusterconfig",
+      "sudo chown -R $USER /etc/clusterconfig"
+    ]
+
+    connection {
+      type     = "ssh"
+      user     = var.ssh_user
+      private_key = chomp(data.local_file.ssh_privkey.content)
+      host     = var.mariadb_node_ip_address
+      bastion_host = var.bastion_host
+    }
+  }
+
   provisioner "file" {
     source      = "${var.path_to_certs}/"
     destination = "/etc/clusterconfig"
@@ -139,6 +154,21 @@ resource "null_resource" "mariadb_node" {
 # Node which contains the host volume for Rails web
 resource "null_resource" "rails_web_node" {
   depends_on = [ null_resource.nomad_server ]
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo mkdir -p /etc/clusterconfig",
+      "sudo chown -R $USER /etc/clusterconfig"
+    ]
+
+    connection {
+      type     = "ssh"
+      user     = var.ssh_user
+      private_key = chomp(data.local_file.ssh_privkey.content)
+      host     = var.rails_web_node_ip_address
+      bastion_host = var.bastion_host
+    }
+  }
 
   provisioner "file" {
     source      = "${var.path_to_certs}/"
@@ -219,6 +249,21 @@ resource "null_resource" "rails_web_node" {
 resource "null_resource" "nginx_node" {
   depends_on = [ null_resource.nomad_server ]
 
+  provisioner "remote-exec" {
+    inline = [
+      "sudo mkdir -p /etc/clusterconfig",
+      "sudo chown -R $USER /etc/clusterconfig"
+    ]
+
+    connection {
+      type     = "ssh"
+      user     = var.ssh_user
+      private_key = chomp(data.local_file.ssh_privkey.content)
+      host     = var.nginx_node_ip_address
+      bastion_host = var.bastion_host
+    }
+  }
+
   provisioner "file" {
     source      = "${var.path_to_certs}/"
     destination = "/etc/clusterconfig"
@@ -296,6 +341,21 @@ resource "null_resource" "nginx_node" {
 resource "null_resource" "nomad_node" {
   depends_on = [ null_resource.nomad_server ]
   count = 2
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo mkdir -p /etc/clusterconfig",
+      "sudo chown -R $USER /etc/clusterconfig"
+    ]
+
+    connection {
+      type     = "ssh"
+      user     = var.ssh_user
+      private_key = chomp(data.local_file.ssh_privkey.content)
+      host     = var.nomad_agent_ip_addresses[count.index]
+      bastion_host = var.bastion_host
+    }
+  }
 
   provisioner "file" {
     source      = "${var.path_to_certs}/"
