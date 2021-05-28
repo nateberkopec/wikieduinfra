@@ -3,10 +3,10 @@ remote_state {
 
   generate = {
     path      = "backend.tf"
-    if_exists = "overwrite_terragrunt"
+    if_exists = "skip"
   }
 
   config = {
-    path = "${path_relative_to_include()}/terraform.tfstate"
+    path = "terraform.tfstate"
   }
 }
