@@ -75,3 +75,15 @@ variable "ssh_privkey" {
 variable "ssh_user" {
   type = string
 }
+
+variable "bastion_host" {
+  type = string
+}
+
+variable "nomad_server_external_address" {
+  type = string
+}
+
+variable "mariadb" {
+  type = bool
+}

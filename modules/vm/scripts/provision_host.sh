@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-[ `whoami` = root ] || exec su -c $0 root
 
 sudo apt-get update -qq
 
@@ -17,18 +16,21 @@ sudo apt-get install -yq --no-install-recommends software-properties-common
 
 curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
 sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-sudo apt-get update
+sudo apt-get update -qq
+
 # Consul
 
 sudo apt-get install -yq --no-install-recommends consul
 
+sudo mkdir -p /etc/clusterconfig
+sudo chown -R $USER /etc/clusterconfig
+cd /etc/clusterconfig
 consul tls ca create
 consul tls cert create -server
 consul tls cert create -client
 mkdir consul-agent-certs
 cp consul-agent-ca.pem ./consul-agent-certs
 cp dc1-client-consul* ./consul-agent-certs
-
 
 sudo touch /etc/systemd/system/consulserver.service
 sudo touch /etc/consul.d/envfile
@@ -53,7 +55,7 @@ TasksMax=infinity
 EnvironmentFile=/etc/consul.d/envfile
 
 [Install]
-WantedBy=multi-user.target" >> /etc/systemd/system/consulserver.service
+WantedBy=multi-user.target" | sudo tee /etc/systemd/system/consulserver.service
 
 sudo mkdir --parents /etc/consul.d
 sudo chmod 700 /etc/consul.d
@@ -90,13 +92,13 @@ verify_incoming_rpc = true
 verify_incoming_https = false
 verify_outgoing = true
 verify_server_hostname = true
-ca_file = \"/root/consul-agent-certs/consul-agent-ca.pem\"
-cert_file = \"/root/dc1-server-consul-0.pem\"
-key_file = \"/root/dc1-server-consul-0-key.pem\"
+ca_file = \"/etc/clusterconfig/consul-agent-certs/consul-agent-ca.pem\"
+cert_file = \"/etc/clusterconfig/dc1-server-consul-0.pem\"
+key_file = \"/etc/clusterconfig/dc1-server-consul-0-key.pem\"
 auto_encrypt {
   allow_tls = true
 }
-" >> /etc/consul.d/server.hcl
+" | sudo tee /etc/consul.d/server.hcl
 
 sudo systemctl enable consulserver
 sudo systemctl start consulserver
@@ -125,12 +127,12 @@ StartLimitIntervalSec=10
 TasksMax=infinity
 
 [Install]
-WantedBy=multi-user.target" >> /etc/systemd/system/nomadserver.service
+WantedBy=multi-user.target" | sudo tee /etc/systemd/system/nomadserver.service
 
 IP_ADDR=$(hostname --all-ip-addresses | awk '{print $1}')
 consul tls ca create -domain=nomad -name-constraint
-consul tls cert create -server -domain nomad -additional-ipaddress=$IP_ADDR -dc=global
-consul tls cert create -client -domain nomad -additional-ipaddress=$IP_ADDR -dc=global
+consul tls cert create -server -domain nomad -additional-ipaddress=$IP_ADDR -additional-ipaddress=$4 -dc=global
+consul tls cert create -client -domain nomad -additional-ipaddress=$IP_ADDR -additional-ipaddress=$4 -dc=global
 mkdir nomad-agent-certs
 cp nomad-agent-ca.pem ./nomad-agent-certs
 mv global-client* ./nomad-agent-certs
@@ -160,27 +162,27 @@ consul {
   ssl = true
   token = \"$1\"
 
-  ca_file = \"/root/consul-agent-certs/consul-agent-ca.pem\"
-  cert_file = \"/root/consul-agent-certs/dc1-client-consul-0.pem\"
-  key_file = \"/root/consul-agent-certs/dc1-client-consul-0-key.pem\"
+  ca_file = \"/etc/clusterconfig/consul-agent-certs/consul-agent-ca.pem\"
+  cert_file = \"/etc/clusterconfig/consul-agent-certs/dc1-client-consul-0.pem\"
+  key_file = \"/etc/clusterconfig/consul-agent-certs/dc1-client-consul-0-key.pem\"
 }
 
 tls {
   http = true
   rpc = true
 
-  ca_file = \"/root/nomad-agent-ca.pem\"
-  cert_file = \"/root/global-server-nomad-0.pem\"
-  key_file = \"/root/global-server-nomad-0-key.pem\"
+  ca_file = \"/etc/clusterconfig/nomad-agent-ca.pem\"
+  cert_file = \"/etc/clusterconfig/global-server-nomad-0.pem\"
+  key_file = \"/etc/clusterconfig/global-server-nomad-0-key.pem\"
 
   verify_server_hostname = true
   verify_https_client = false
 }
-" >> /etc/nomad.d/server.hcl
+" | sudo tee /etc/nomad.d/server.hcl
 
 sudo systemctl enable nomadserver
 sudo systemctl start nomadserver
-sleep 10
+sleep 5
 nomad acl bootstrap -address=https://$IP_ADDR:4646 -ca-cert=nomad-agent-ca.pem 2>&1 | tee bootstrap.token
 
 # NR Agent

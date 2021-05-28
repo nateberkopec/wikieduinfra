@@ -76,3 +76,8 @@ variable "rails_web_node_ip_address" {
 variable "nomad_agent_ip_addresses" {
   type = list
 }
+
+variable "nomad_server_external_ip_address" {
+  type = string
+  default = "127.0.0.1"
+}

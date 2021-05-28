@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-[ `whoami` = root ] || exec su -c $0 root
-
 sudo apt-get update -qq
 
 sudo apt-get install -yq --no-install-recommends \
@@ -12,9 +10,12 @@ sudo apt-get install -yq --no-install-recommends \
   jq \
   software-properties-common
 
+sudo mkdir -p /etc/clusterconfig
+sudo chown -R $USER /etc/clusterconfig
+
 # AGENT ONLY - Docker
 
-curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/docker-archive-keyring.gpg
 
 echo \
   "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian \
@@ -22,6 +23,8 @@ echo \
 
 sudo apt-get update -qq
 sudo apt-get install -yq --no-install-recommends docker-ce docker-ce-cli containerd.io
+sudo groupadd docker
+sudo usermod -aG docker $USER
 docker run hello-world
 
 # AGENT ONLY - CNI plugins
@@ -30,13 +33,13 @@ curl -L -o cni-plugins.tgz "https://github.com/containernetworking/plugins/relea
 sudo mkdir -p /opt/cni/bin
 sudo tar -C /opt/cni/bin -xzf cni-plugins.tgz
 
-echo 1 > /proc/sys/net/bridge/bridge-nf-call-arptables
-echo 1 > /proc/sys/net/bridge/bridge-nf-call-ip6tables
-echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables
+sudo echo 1 > /proc/sys/net/bridge/bridge-nf-call-arptables
+sudo echo 1 > /proc/sys/net/bridge/bridge-nf-call-ip6tables
+sudo echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables
 
-echo "net.bridge.bridge-nf-call-arptables = 1
+sudo echo "net.bridge.bridge-nf-call-arptables = 1
 net.bridge.bridge-nf-call-ip6tables = 1
-net.bridge.bridge-nf-call-iptables = 1"  >> /etc/sysctl.d/cni
+net.bridge.bridge-nf-call-iptables = 1" | sudo tee /etc/sysctl.d/cni
 
 # Consul
 
@@ -65,7 +68,7 @@ StartLimitIntervalSec=10
 TasksMax=infinity
 
 [Install]
-WantedBy=multi-user.target" >> /etc/systemd/system/consulclient.service
+WantedBy=multi-user.target" | sudo tee /etc/systemd/system/consulclient.service
 
 sudo mkdir --parents /etc/consul.d
 sudo chmod 700 /etc/consul.d
@@ -96,13 +99,13 @@ acl = {
 verify_incoming = false,
 verify_outgoing = true,
 verify_server_hostname = true,
-ca_file = \"/root/consul-agent-certs/consul-agent-ca.pem\",
+ca_file = \"/etc/clusterconfig/consul-agent-certs/consul-agent-ca.pem\",
 auto_encrypt = {
   tls = true
 }
 
 retry_join = [\"$4\"]
-" >> /etc/consul.d/client.hcl
+" | sudo tee /etc/consul.d/client.hcl
 
 sudo systemctl enable consulclient
 sudo systemctl start consulclient
@@ -132,7 +135,11 @@ StartLimitIntervalSec=10
 TasksMax=infinity
 
 [Install]
-WantedBy=multi-user.target" >> /etc/systemd/system/nomadclient.service
+WantedBy=multi-user.target" | sudo tee /etc/systemd/system/nomadclient.service
+
+sudo mkdir --parents /etc/nomad.d
+sudo chmod 700 /etc/nomad.d
+sudo touch /etc/nomad.d/client.hcl
 
 # Config must be installed by another script.
 

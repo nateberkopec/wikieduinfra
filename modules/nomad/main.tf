@@ -19,15 +19,21 @@ data "local_file" "ssh_privkey" {
   filename = var.ssh_privkey
 }
 
+locals {
+  nomad_server_external_address = var.nomad_server_external_address != null ? var.nomad_server_external_address : var.nomad_server_ip_address
+  db_node_count = var.mariadb == false ? 0 : 1
+  bastion_host = var.bastion_host == null ? " " : var.bastion_host
+}
+
 data "external" "nomad_bootstrap_acl" {
-  program = ["sh", "scripts/get_bootstrap.sh", data.local_file.ssh_privkey.filename, var.ssh_user]
-  query = { "ip_address": var.nomad_server_ip_address }
+  program = ["sh", "scripts/get_bootstrap.sh", data.local_file.ssh_privkey.filename, var.ssh_user, local.bastion_host]
+  query = { "ip_address" = var.nomad_server_ip_address }
 }
 
 # Nomad
 
 provider "nomad" {
-  address = "https://${var.nomad_server_ip_address}:4646"
+  address = "https://${local.nomad_server_external_address}:4646"
   secret_id = data.external.nomad_bootstrap_acl.result.token
   ca_file = "${var.path_to_certs}/nomad-agent-certs/nomad-agent-ca.pem"
   cert_file = "${var.path_to_certs}/nomad-agent-certs/global-client-nomad-0.pem"
@@ -37,7 +43,7 @@ provider "nomad" {
 # Consul, for creating intentions
 
 provider "consul" {
-  address = "${var.nomad_server_ip_address}:8501"
+  address = "${local.nomad_server_external_address}:8501"
   scheme = "https"
   token = var.consul_mgmt_token
   ca_file = "${var.path_to_certs}/consul-agent-certs/consul-agent-ca.pem"
@@ -172,6 +178,8 @@ resource "consul_config_entry" "memcache" {
 }
 
 resource "nomad_job" "mariadb" {
+  count = local.db_node_count
+
   jobspec = templatefile(
               "${path.module}/jobs/mariadb.hcl.tmpl",
               {
@@ -285,7 +293,7 @@ resource "null_resource" "nomad_shell" {
   provisioner "local-exec" {
     command = <<EOF
     echo "
-      export NOMAD_ADDR="https://${var.nomad_server_ip_address}:4646"
+      export NOMAD_ADDR="https://${local.nomad_server_external_address}:4646"
       export NOMAD_TOKEN=${data.external.nomad_bootstrap_acl.result.token}
       export NOMAD_CA_PATH="${var.path_to_certs}/nomad-agent-certs/nomad-agent-ca.pem"
       export NOMAD_CLIENT_CERT="${var.path_to_certs}/nomad-agent-certs/global-client-nomad-0.pem"
@@ -300,7 +308,7 @@ resource "null_resource" "waypoint" {
   provisioner "local-exec" {
     command = "waypoint install -platform=nomad -nomad-dc=dc1 -accept-tos"
     environment = {
-      NOMAD_ADDR="https://${var.nomad_server_ip_address}:4646"
+      NOMAD_ADDR="https://${local.nomad_server_external_address}:4646"
       NOMAD_TOKEN=data.external.nomad_bootstrap_acl.result.token
       NOMAD_CA_PATH="${var.path_to_certs}/nomad-agent-certs/nomad-agent-ca.pem"
       NOMAD_CLIENT_CERT="${var.path_to_certs}/nomad-agent-certs/global-client-nomad-0.pem"
